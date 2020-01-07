@@ -20,21 +20,40 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 
+	"golang.org/x/xerrors"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // New creates a Client that runs kubectl avaliable on the path with default authentication
 func New() *Client {
-	return &Client{cmdSite: &console{}}
+	return &Client{
+		restConfig: nil,
+		cmdSite:    &console{},
+	}
+}
+
+// NewWithConfig creates a Client that runs kubectl avaliable on the path with specified configuration
+func NewWithConfig(restConfig *rest.Config) *Client {
+	return &Client{
+		restConfig: restConfig,
+		cmdSite:    &console{},
+	}
 }
 
 // Client provides an interface to kubectl
 type Client struct {
-	cmdSite commandSite
+	restConfig *rest.Config
+	cmdSite    commandSite
 }
 
 // commandSite allows for tests to mock cmd.Run() events
@@ -46,6 +65,39 @@ type console struct {
 
 func (console) Run(c *exec.Cmd) error {
 	return c.Run()
+}
+
+func buildKubeconfig(restConfig *rest.Config) ([]byte, error) {
+	clientConfig := clientcmdapi.Config{}
+	{
+		context := &clientcmdapi.Context{
+			Cluster:  "target",
+			AuthInfo: "target",
+		}
+
+		authInfo := &clientcmdapi.AuthInfo{
+			ClientCertificateData: restConfig.CertData,
+			ClientKeyData:         restConfig.KeyData,
+			Token:                 restConfig.BearerToken,
+		}
+
+		cluster := &clientcmdapi.Cluster{
+			Server:                   restConfig.Host,
+			CertificateAuthorityData: restConfig.CAData,
+		}
+
+		clientConfig.CurrentContext = "target"
+		clientConfig.Contexts = map[string]*clientcmdapi.Context{"target": context}
+		clientConfig.AuthInfos = map[string]*clientcmdapi.AuthInfo{"target": authInfo}
+		clientConfig.Clusters = map[string]*clientcmdapi.Cluster{"target": cluster}
+	}
+
+	b, err := clientcmd.Write(clientConfig)
+	if err != nil {
+		return nil, xerrors.Errorf("error building kubeconfig: %w", err)
+	}
+
+	return b, nil
 }
 
 // Apply runs the kubectl apply with the provided manifest argument
@@ -62,6 +114,34 @@ func (c *Client) Apply(ctx context.Context, namespace string, manifest string, v
 	// Not doing --validate avoids downloading the OpenAPI
 	// which can save a lot work & memory
 	args = append(args, "--validate="+strconv.FormatBool(validate))
+
+	if c.restConfig != nil {
+		kubeconfig, err := buildKubeconfig(c.restConfig)
+		if err != nil {
+			return xerrors.Errorf("error building kubeconfig: %w", err)
+		}
+
+		f, err := ioutil.TempFile("", "kubeconfig")
+		if err != nil {
+			return xerrors.Errorf("error creating temp file: %w", err)
+		}
+
+		defer func() {
+			if err := os.Remove(f.Name()); err != nil {
+				klog.Errorf("error removing kubeconfig temp file %s: %v", f.Name(), err)
+			}
+		}()
+
+		if _, err := f.Write(kubeconfig); err != nil {
+			return xerrors.Errorf("error writing kubeconfig: %w", err)
+		}
+
+		if err := f.Close(); err != nil {
+			return xerrors.Errorf("error writing kubeconfig: %w", err)
+		}
+
+		args = append(args, "--kubeconfig", f.Name())
+	}
 
 	args = append(args, extraArgs...)
 	args = append(args, "-f", "-")

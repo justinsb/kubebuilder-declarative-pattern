@@ -44,14 +44,14 @@ type Reconciler struct {
 	prototype DeclarativeObject
 	client    client.Client
 	config    *rest.Config
-	kubectl   kubectlClient
+	kubectl   Applyer
 
 	mgr manager.Manager
 
 	options reconcilerParams
 }
 
-type kubectlClient interface {
+type Applyer interface {
 	Apply(ctx context.Context, namespace string, manifest string, validate bool, args ...string) error
 }
 
@@ -83,7 +83,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 	ctx := context.TODO()
 	log := log.Log
 
-	// Fetch the object
+	// Fetch our CRD instance
 	instance := r.prototype.DeepCopyObject().(DeclarativeObject)
 	if err := r.client.Get(ctx, request.NamespacedName, instance); err != nil {
 		if errors.IsNotFound(err) {
@@ -159,7 +159,17 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 		ns = name.Namespace
 	}
 
-	if err := r.kubectl.Apply(ctx, ns, manifestStr, r.options.validate, extraArgs...); err != nil {
+	applyer := r.kubectl
+	if r.options.overrideTargetCluster != nil {
+		if k, err := r.options.overrideTargetCluster(ctx, instance); err != nil {
+			log.Error(err, "error while overriding target cluster")
+			return reconcile.Result{}, err
+		} else if k != nil {
+			applyer = k
+		}
+	}
+
+	if err := applyer.Apply(ctx, ns, manifestStr, r.options.validate, extraArgs...); err != nil {
 		log.Error(err, "applying manifest")
 		return reconcile.Result{}, fmt.Errorf("error applying manifest: %v", err)
 	}
