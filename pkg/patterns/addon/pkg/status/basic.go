@@ -29,3 +29,12 @@ func NewBasic(client client.Client) declarative.Status {
 		// no preflight checks
 	}
 }
+
+// NewBasicPreFlight provides an implementation of declarative.Status that
+// performs preflight checks for the version of the operator that the manifest requires.
+func NewBasicPreFlight(client client.Client, version string) declarative.Status {
+	return &declarative.StatusBuilder{
+		ReconciledImpl: NewAggregator(client),
+		PreflightImpl:  NewPreflightChecks(client, version),
+	}
+}

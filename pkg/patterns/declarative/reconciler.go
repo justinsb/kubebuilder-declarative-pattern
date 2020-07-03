@@ -96,13 +96,6 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		return reconcile.Result{}, err
 	}
 
-	if r.options.status != nil {
-		if err := r.options.status.Preflight(ctx, instance); err != nil {
-			log.Error(err, "preflight check failed, not reconciling")
-			return reconcile.Result{}, err
-		}
-	}
-
 	return r.reconcileExists(ctx, request.NamespacedName, instance)
 }
 
@@ -118,9 +111,20 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 	objects, err := r.BuildDeploymentObjectsWithFs(ctx, name, instance, fs)
 	if err != nil {
 		log.Error(err, "building deployment objects")
+		//log.Info(instance.)
+		//r.client.Status().Update(ctx, instance)
+		//recorder := r.mgr.GetEventRecorderFor(fmt.Sprintf("%v operator", instance.GetName()))
+		//recorder.Event(instance, "Warning", "Unable to build deployment", err.Error())
 		return reconcile.Result{}, fmt.Errorf("error building deployment objects: %v", err)
 	}
 	log.WithValues("objects", fmt.Sprintf("%d", len(objects.Items))).Info("built deployment objects")
+
+	if r.options.status != nil {
+		if err := r.options.status.Preflight(ctx, instance, objects); err != nil {
+			log.Error(err, "preflight check failed, not reconciling")
+			return reconcile.Result{}, err
+		}
+	}
 
 	defer func() {
 		if r.options.status != nil {
@@ -275,6 +279,7 @@ func (r *Reconciler) parseAndTransformManifest(ctx context.Context, instance Dec
 	if r.options.labelMaker != nil {
 		transforms = append(transforms, AddLabels(r.options.labelMaker(ctx, instance)))
 	}
+
 	// TODO(jrjohnson): apply namespace here
 	for _, t := range transforms {
 		err := t(ctx, instance, objects)

@@ -91,9 +91,24 @@ func (c *ManifestLoader) ResolveManifest(ctx context.Context, object runtime.Obj
 		id = version.Version
 
 		log.WithValues("channel", channelName).WithValues("version", id).Info("resolved version from channel")
-	} else {
-		log.WithValues("version", version).Info("using specified version")
 	}
+	//else {
+	//	minVersion := "1.10"
+	//
+	//	log.WithValues("version", version).Info("using specified version")
+	//	log.WithValues("version", minVersion).Info("checking with operator's minimum version")
+	//
+	//	log.WithValues("version", minVersion).Info(fmt.Sprintf("%v < %v = %v", version, minVersion,
+	//		version < minVersion))
+	//	if version < minVersion {
+	//		status := addonsv1alpha1.CommonStatus{
+	//			Healthy: false,
+	//			Errors: []string{fmt.Sprintf("Version %v is less than minimum version %v", version, minVersion)},
+	//		}
+	//		addonObject.SetCommonStatus(status)
+	//		return nil, fmt.Errorf("version is below minimum version")
+	//	}
+
 	s := make(map[string]string)
 	s, err := c.repo.LoadManifest(ctx, componentName, id)
 	if err != nil {

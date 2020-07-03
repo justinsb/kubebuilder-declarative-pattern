@@ -39,7 +39,7 @@ type Preflight interface {
 	// Preflight validates if the current state of the world is ready for reconciling.
 	// Returning a non-nil error on this object will prevent Reconcile from running.
 	// The caller is encouraged to surface the error status on the DeclarativeObject.
-	Preflight(context.Context, DeclarativeObject) error
+	Preflight(context.Context, DeclarativeObject, *manifest.Objects) error
 }
 
 // StatusBuilder provides a pluggable implementation of Status
@@ -55,9 +55,9 @@ func (s *StatusBuilder) Reconciled(ctx context.Context, src DeclarativeObject, o
 	return nil
 }
 
-func (s *StatusBuilder) Preflight(ctx context.Context, src DeclarativeObject) error {
+func (s *StatusBuilder) Preflight(ctx context.Context, src DeclarativeObject,objs *manifest.Objects) error {
 	if s.PreflightImpl != nil {
-		return s.PreflightImpl.Preflight(ctx, src)
+		return s.PreflightImpl.Preflight(ctx, src, objs)
 	}
 	return nil
 }

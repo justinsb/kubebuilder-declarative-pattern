@@ -6,6 +6,7 @@ require (
 	github.com/blang/semver v3.5.0+incompatible
 	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+	github.com/pkg/errors v0.8.1
 	golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7
 	k8s.io/api v0.18.4
 	k8s.io/apimachinery v0.18.4
