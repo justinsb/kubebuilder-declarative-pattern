@@ -76,7 +76,6 @@ func (a *aggregator) Reconciled(ctx context.Context, src declarative.Declarative
 
 	if !reflect.DeepEqual(status, instance.GetCommonStatus()) {
 		instance.SetCommonStatus(status)
-		fmt.Printf("Updating status: %v", status.Healthy)
 		log.WithValues("name", instance.GetName()).WithValues("status", status).Info("updating status")
 
 		err := a.client.Update(ctx, instance)

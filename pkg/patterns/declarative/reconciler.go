@@ -131,7 +131,6 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 				log.Error(err, "failed to reconcile status")
 			}
 		}
-		fmt.Println("Update status")
 		r.client.Status().Update(ctx, instance)
 	}()
 

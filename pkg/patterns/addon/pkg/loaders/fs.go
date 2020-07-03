@@ -91,8 +91,9 @@ func (c *ManifestLoader) ResolveManifest(ctx context.Context, object runtime.Obj
 		id = version.Version
 
 		log.WithValues("channel", channelName).WithValues("version", id).Info("resolved version from channel")
+	} else {
+		log.WithValues("version", version).Info("using specified version")
 	}
-
 	s := make(map[string]string)
 	s, err := c.repo.LoadManifest(ctx, componentName, id)
 	if err != nil {

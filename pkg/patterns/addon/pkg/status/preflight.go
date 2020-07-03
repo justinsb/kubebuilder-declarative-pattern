@@ -80,6 +80,7 @@ func (p *preflightChecks) Preflight(
 					fmt.Sprintf("Addons needs version %v, this operator is version %v", maxVersion.String(), operatorVersion.String()),
 				},
 			}
+			log.WithValues("name", instance.GetName()).WithValues("status", status).Info("updating status")
 			addonObject.SetCommonStatus(status)
 
 			return fmt.Errorf("Operator not qualified, manifest needs operator >= %v", maxVersion.String())
