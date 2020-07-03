@@ -111,16 +111,15 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 	objects, err := r.BuildDeploymentObjectsWithFs(ctx, name, instance, fs)
 	if err != nil {
 		log.Error(err, "building deployment objects")
-		//log.Info(instance.)
-		//r.client.Status().Update(ctx, instance)
-		//recorder := r.mgr.GetEventRecorderFor(fmt.Sprintf("%v operator", instance.GetName()))
-		//recorder.Event(instance, "Warning", "Unable to build deployment", err.Error())
 		return reconcile.Result{}, fmt.Errorf("error building deployment objects: %v", err)
 	}
 	log.WithValues("objects", fmt.Sprintf("%d", len(objects.Items))).Info("built deployment objects")
 
 	if r.options.status != nil {
 		if err := r.options.status.Preflight(ctx, instance, objects); err != nil {
+			r.client.Status().Update(ctx, instance)
+			recorder := r.mgr.GetEventRecorderFor(fmt.Sprintf("%v", instance.GetName()))
+			recorder.Event(instance, "Warning", "Failed preflight check", err.Error())
 			log.Error(err, "preflight check failed, not reconciling")
 			return reconcile.Result{}, err
 		}
@@ -132,6 +131,8 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 				log.Error(err, "failed to reconcile status")
 			}
 		}
+		fmt.Println("Update status")
+		r.client.Status().Update(ctx, instance)
 	}()
 
 	err = r.injectOwnerRef(ctx, instance, objects)

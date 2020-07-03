@@ -11,6 +11,7 @@ import (
 
 	//"sigs.k8s.io/controller-runtime/pkg/log"
 	appsv1beta1 "sigs.k8s.io/application/api/v1beta1"
+	addonsv1alpha1 "sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/apis/v1alpha1"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative/pkg/manifest"
 )
@@ -44,6 +45,8 @@ func (p *preflightChecks) Preflight(ctx context.Context, src declarative.Declara
 				continue
 			}
 
+			// metadata := unstruct["metadata"]["annotations"][]
+
 			versionNeededStr = newApp.ObjectMeta.Annotations["addons.k8s.io/operator-version"]
 
 		}
@@ -63,6 +66,19 @@ func (p *preflightChecks) Preflight(ctx context.Context, src declarative.Declara
 		}
 
 		if versionNeeded.GT(operatorVersion) {
+			addonObject, ok := src.(addonsv1alpha1.CommonObject)
+			if !ok {
+				return fmt.Errorf("object %T was not an addonsv1alpha1.CommonObject", src)
+			}
+
+			status := addonsv1alpha1.CommonStatus{
+				Healthy: false,
+				Errors: []string{
+					fmt.Sprintf("Addons needs version %v, this operator is version %v", versionNeeded.String(), operatorVersion.String()),
+				},
+			}
+			addonObject.SetCommonStatus(status)
+
 			return fmt.Errorf("Operator not qualified, manifest needs operator >= %v", versionNeeded.String())
 		}
 	}
