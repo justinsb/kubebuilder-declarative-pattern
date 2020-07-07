@@ -26,6 +26,7 @@ import (
 type Status interface {
 	Reconciled
 	Preflight
+	VersionCheck
 }
 
 type Reconciled interface {
@@ -39,13 +40,21 @@ type Preflight interface {
 	// Preflight validates if the current state of the world is ready for reconciling.
 	// Returning a non-nil error on this object will prevent Reconcile from running.
 	// The caller is encouraged to surface the error status on the DeclarativeObject.
-	Preflight(context.Context, DeclarativeObject, *manifest.Objects) error
+	Preflight(context.Context, DeclarativeObject) error
+}
+
+type VersionCheck interface {
+	// VersionCheck checks if the version of the operator is greater than or equal to the
+	//version requested by objects in the manifest, if it isn't it updates the status and
+	// events and stops reconciling
+	VersionCheck(context.Context, DeclarativeObject, *manifest.Objects) (bool, error)
 }
 
 // StatusBuilder provides a pluggable implementation of Status
 type StatusBuilder struct {
 	ReconciledImpl Reconciled
 	PreflightImpl  Preflight
+	VersionCheckImpl VersionCheck
 }
 
 func (s *StatusBuilder) Reconciled(ctx context.Context, src DeclarativeObject, objs *manifest.Objects) error {
@@ -55,11 +64,18 @@ func (s *StatusBuilder) Reconciled(ctx context.Context, src DeclarativeObject, o
 	return nil
 }
 
-func (s *StatusBuilder) Preflight(ctx context.Context, src DeclarativeObject,objs *manifest.Objects) error {
+func (s *StatusBuilder) Preflight(ctx context.Context, src DeclarativeObject) error {
 	if s.PreflightImpl != nil {
-		return s.PreflightImpl.Preflight(ctx, src, objs)
+		return s.PreflightImpl.Preflight(ctx, src)
 	}
 	return nil
+}
+
+func (s *StatusBuilder) VersionCheck(ctx context.Context, src DeclarativeObject,objs *manifest.Objects) (bool, error) {
+	if s.VersionCheckImpl != nil {
+		return s.VersionCheckImpl.VersionCheck(ctx, src, objs)
+	}
+	return true, nil
 }
 
 var _ Status = &StatusBuilder{}

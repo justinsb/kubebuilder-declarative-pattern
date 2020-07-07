@@ -96,6 +96,13 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		return reconcile.Result{}, err
 	}
 
+	if r.options.status != nil {
+		if err := r.options.status.Preflight(ctx, instance); err != nil {
+			log.Error(err, "preflight check failed, not reconciling")
+			return reconcile.Result{}, err
+		}
+	}
+
 	return r.reconcileExists(ctx, request.NamespacedName, instance)
 }
 
@@ -116,11 +123,17 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 	log.WithValues("objects", fmt.Sprintf("%d", len(objects.Items))).Info("built deployment objects")
 
 	if r.options.status != nil {
-		if err := r.options.status.Preflight(ctx, instance, objects); err != nil {
-			r.client.Status().Update(ctx, instance)
-			recorder := r.mgr.GetEventRecorderFor(fmt.Sprintf("%v", instance.GetName()))
-			recorder.Event(instance, "Warning", "Failed preflight check", err.Error())
-			log.Error(err, "preflight check failed, not reconciling")
+		bool, err := r.options.status.VersionCheck(ctx, instance, objects)
+		if  err != nil {
+			if !bool {
+				// r.client isn't exported so can't be updated in version check function
+				r.client.Status().Update(ctx, instance)
+				recorder := r.mgr.GetEventRecorderFor(fmt.Sprintf("%v", instance.GetName()))
+				recorder.Event(instance, "Warning", "Failed version check", err.Error())
+				log.Error(err, "Version check failed, not reconciling")
+				return reconcile.Result{}, nil
+			}
+			log.Error(err, "Version check failed, trying to reconcile")
 			return reconcile.Result{}, err
 		}
 	}
@@ -131,7 +144,6 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 				log.Error(err, "failed to reconcile status")
 			}
 		}
-		r.client.Status().Update(ctx, instance)
 	}()
 
 	err = r.injectOwnerRef(ctx, instance, objects)
@@ -279,7 +291,6 @@ func (r *Reconciler) parseAndTransformManifest(ctx context.Context, instance Dec
 	if r.options.labelMaker != nil {
 		transforms = append(transforms, AddLabels(r.options.labelMaker(ctx, instance)))
 	}
-
 	// TODO(jrjohnson): apply namespace here
 	for _, t := range transforms {
 		err := t(ctx, instance, objects)
