@@ -32,16 +32,12 @@ func (p *versionCheck) VersionCheck(
 ) (bool, error) {
 	log := log.Log
 	zeroVersion := semver.Version{}
-	var versionNeededStr string
 	maxVersion := zeroVersion
 
 	// Look for annotation from any resource with the max version
 	for _, obj := range objs.Items {
-		unstruct := obj.UnstructuredObject().Object
-		metadata := unstruct["metadata"].(map[string]interface{})
-		annotations, ok := metadata["annotations"].(map[string]interface{})
-		if ok {
-			versionNeededStr, _ = annotations["addons.k8s.io/operator-version"].(string)
+		annotations := obj.UnstructuredObject().GetAnnotations()
+		if versionNeededStr, ok := annotations["addons.k8s.io/operator-version"]; ok {
 			log.WithValues("version", versionNeededStr).Info("Got version, %v")
 
 			versionActual, err := semver.Make(versionNeededStr)
