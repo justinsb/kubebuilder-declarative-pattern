@@ -3,12 +3,11 @@ package status
 import (
 	"context"
 	"fmt"
+
 	"github.com/blang/semver"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	addonsv1alpha1 "sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/apis/v1alpha1"
-
-	//"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative/pkg/manifest"
@@ -16,13 +15,19 @@ import (
 
 // NewVersionCheck provides an implementation of declarative.Reconciled that
 // checks the version of the operator if it is up to the version required by the manifest
-func NewVersionCheck(client client.Client, version string) *versionCheck {
-	return &versionCheck{client, version}
+func NewVersionCheck(client client.Client, version string) (*versionCheck, error) {
+	log := log.Log
+	operatorVersion, err := semver.Make(version)
+	if err != nil {
+		log.WithValues("version", version).Info("Unable to convert string to version, skipping check")
+		return nil, err
+	}
+	return &versionCheck{client, operatorVersion}, nil
 }
 
 type versionCheck struct {
 	client  client.Client
-	version string
+	version semver.Version
 }
 
 func (p *versionCheck) VersionCheck(
@@ -42,8 +47,8 @@ func (p *versionCheck) VersionCheck(
 
 			versionActual, err := semver.Make(versionNeededStr)
 			if err != nil {
-				log.WithValues("version", versionNeededStr).Info("Unable to convert string to version, skipping this object")
-				continue
+				log.WithValues("version", versionNeededStr).Error(err, "Unable to convert string to version, skipping this object")
+				return false, err
 			}
 
 			if versionActual.GT(maxVersion) {
@@ -52,14 +57,7 @@ func (p *versionCheck) VersionCheck(
 		}
 	}
 
-	// TODO(somtochi): Do we want to return an error when the version is invalid or just skip and use the operator?
-	operatorVersion, err := semver.Make(p.version)
-	if err != nil {
-		log.WithValues("version", p.version).Info("Unable to convert string to version, skipping check")
-		return true, nil
-	}
-
-	if maxVersion.Equals(zeroVersion) || !maxVersion.GT(operatorVersion) {
+	if maxVersion.Equals(zeroVersion) || !maxVersion.GT(p.version) {
 		return true, nil
 	}
 
@@ -71,7 +69,7 @@ func (p *versionCheck) VersionCheck(
 	status := addonsv1alpha1.CommonStatus{
 		Healthy: false,
 		Errors: []string{
-			fmt.Sprintf("Addons needs version %v, this operator is version %v", maxVersion.String(), operatorVersion.String()),
+			fmt.Sprintf("Addons needs version %v, this operator is version %v", maxVersion.String(), p.version.String()),
 		},
 	}
 	log.WithValues("name", addonObject.GetName()).WithValues("status", status).Info("updating status")

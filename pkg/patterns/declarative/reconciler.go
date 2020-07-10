@@ -123,11 +123,14 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 	log.WithValues("objects", fmt.Sprintf("%d", len(objects.Items))).Info("built deployment objects")
 
 	if r.options.status != nil {
-		bool, err := r.options.status.VersionCheck(ctx, instance, objects)
-		if  err != nil {
-			if !bool {
+		validVersion, err := r.options.status.VersionCheck(ctx, instance, objects)
+		if err != nil {
+			if !validVersion {
 				// r.client isn't exported so can't be updated in version check function
-				r.client.Status().Update(ctx, instance)
+				err := r.client.Status().Update(ctx, instance)
+				if err != nil {
+					return reconcile.Result{}, err
+				}
 				recorder := r.mgr.GetEventRecorderFor(fmt.Sprintf("%v", instance.GetName()))
 				recorder.Event(instance, "Warning", "Failed version check", err.Error())
 				log.Error(err, "Version check failed, not reconciling")

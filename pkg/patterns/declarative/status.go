@@ -52,8 +52,8 @@ type VersionCheck interface {
 
 // StatusBuilder provides a pluggable implementation of Status
 type StatusBuilder struct {
-	ReconciledImpl Reconciled
-	PreflightImpl  Preflight
+	ReconciledImpl   Reconciled
+	PreflightImpl    Preflight
 	VersionCheckImpl VersionCheck
 }
 
@@ -71,7 +71,7 @@ func (s *StatusBuilder) Preflight(ctx context.Context, src DeclarativeObject) er
 	return nil
 }
 
-func (s *StatusBuilder) VersionCheck(ctx context.Context, src DeclarativeObject,objs *manifest.Objects) (bool, error) {
+func (s *StatusBuilder) VersionCheck(ctx context.Context, src DeclarativeObject, objs *manifest.Objects) (bool, error) {
 	if s.VersionCheckImpl != nil {
 		return s.VersionCheckImpl.VersionCheck(ctx, src, objs)
 	}
