@@ -15,19 +15,17 @@ import (
 
 // NewVersionCheck provides an implementation of declarative.Reconciled that
 // checks the version of the operator if it is up to the version required by the manifest
-func NewVersionCheck(client client.Client, version string) (*versionCheck, error) {
-	log := log.Log
-	operatorVersion, err := semver.Make(version)
+func NewVersionCheck(client client.Client, operatorVersionString string) (*versionCheck, error) {
+	operatorVersion, err := semver.Parse(operatorVersionString)
 	if err != nil {
-		log.WithValues("version", version).Info("Unable to convert string to version, skipping check")
-		return nil, err
+		return nil, fmt.Errorf("unable to parse operator version %q: %v", operatorVersionString, err)
 	}
-	return &versionCheck{client, operatorVersion}, nil
+	return &versionCheck{client: client, operatorVersion: operatorVersion}, nil
 }
 
 type versionCheck struct {
-	client  client.Client
-	version semver.Version
+	client          client.Client
+	operatorVersion semver.Version
 }
 
 func (p *versionCheck) VersionCheck(
@@ -36,28 +34,27 @@ func (p *versionCheck) VersionCheck(
 	objs *manifest.Objects,
 ) (bool, error) {
 	log := log.Log
-	zeroVersion := semver.Version{}
-	maxVersion := zeroVersion
+	var minOperatorVersion semver.Version
 
 	// Look for annotation from any resource with the max version
 	for _, obj := range objs.Items {
 		annotations := obj.UnstructuredObject().GetAnnotations()
-		if versionNeededStr, ok := annotations["addons.k8s.io/operator-version"]; ok {
-			log.WithValues("version", versionNeededStr).Info("Got version, %v")
+		if versionNeededStr, ok := annotations["addons.k8s.io/min-operator-version"]; ok {
+			log.WithValues("version", versionNeededStr).Info("Got version requirement addons.k8s.io/operator-version=%v")
 
-			versionActual, err := semver.Make(versionNeededStr)
+			versionNeeded, err := semver.Parse(versionNeededStr)
 			if err != nil {
-				log.WithValues("version", versionNeededStr).Error(err, "Unable to convert string to version, skipping this object")
+				log.WithValues("version", versionNeededStr).Error(err, "Unable to parse version restriction")
 				return false, err
 			}
 
-			if versionActual.GT(maxVersion) {
-				maxVersion = versionActual
+			if versionNeeded.GT(minOperatorVersion) {
+				minOperatorVersion = versionNeeded
 			}
 		}
 	}
 
-	if maxVersion.Equals(zeroVersion) || !maxVersion.GT(p.version) {
+	if p.operatorVersion.GTE(minOperatorVersion) {
 		return true, nil
 	}
 
@@ -69,11 +66,11 @@ func (p *versionCheck) VersionCheck(
 	status := addonsv1alpha1.CommonStatus{
 		Healthy: false,
 		Errors: []string{
-			fmt.Sprintf("Addons needs version %v, this operator is version %v", maxVersion.String(), p.version.String()),
+			fmt.Sprintf("manifest needs operator version >= %v, this operator is version %v", minOperatorVersion.String(), p.operatorVersion.String()),
 		},
 	}
 	log.WithValues("name", addonObject.GetName()).WithValues("status", status).Info("updating status")
 	addonObject.SetCommonStatus(status)
 
-	return false, fmt.Errorf("operator not qualified, manifest needs operator >= %v", maxVersion.String())
+	return false, fmt.Errorf("operator not qualified, manifest needs operator version >= %v", minOperatorVersion.String())
 }

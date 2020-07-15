@@ -45,7 +45,7 @@ type Preflight interface {
 
 type VersionCheck interface {
 	// VersionCheck checks if the version of the operator is greater than or equal to the
-	//version requested by objects in the manifest, if it isn't it updates the status and
+	// version requested by objects in the manifest, if it isn't it updates the status and
 	// events and stops reconciling
 	VersionCheck(context.Context, DeclarativeObject, *manifest.Objects) (bool, error)
 }
