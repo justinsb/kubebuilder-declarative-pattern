@@ -83,6 +83,22 @@ func (o *Object) AddLabels(labels map[string]string) {
 	o.json = nil
 }
 
+// AddAnnotations will merge the specified annotations into the object's annotations
+func (o *Object) AddAnnotations(annotations map[string]string) {
+	merged := make(map[string]string)
+	for k, v := range o.object.GetAnnotations() {
+		merged[k] = v
+	}
+
+	for k, v := range annotations {
+		merged[k] = v
+	}
+
+	o.object.SetAnnotations(annotations)
+	// Invalidate cached json
+	o.json = nil
+}
+
 func (o *Object) SetNestedStringMap(value map[string]string, fields ...string) error {
 	if o.object.Object == nil {
 		o.object.Object = make(map[string]interface{})
