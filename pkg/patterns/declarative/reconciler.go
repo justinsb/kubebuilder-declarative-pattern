@@ -323,7 +323,7 @@ func (r *Reconciler) BuildDeploymentObjectsWithFs(ctx context.Context, name type
 			}
 		}
 
-		manifestObjects.Path = filepath.Dir(manifestPath)
+		//manifestObjects.Path = "/" //filepath.Dir(manifestPath)
 		manifestObjects.Items = append(manifestObjects.Items, objects.Items...)
 		manifestObjects.Blobs = append(manifestObjects.Blobs, objects.Blobs...)
 	}
@@ -345,6 +345,8 @@ func (r *Reconciler) BuildDeploymentObjectsWithFs(ctx context.Context, name type
 			log.Error(err, "creating final manifest yaml")
 			return nil, fmt.Errorf("error converting kustomize output to yaml: %v", err)
 		}
+
+		//klog.Infof("manifest yaml: %s", manifestYaml)
 
 		objects, err := r.parseManifest(ctx, instance, string(manifestYaml))
 		if err != nil {
@@ -561,7 +563,7 @@ func parseListKind(infos *manifest.Objects) (*manifest.Objects, error) {
 	ret := manifest.Objects{
 		Items: out,
 		Blobs: infos.Blobs,
-		Path:  infos.Path,
+		// Path:  infos.Path,
 	}
 
 	return &ret, nil
