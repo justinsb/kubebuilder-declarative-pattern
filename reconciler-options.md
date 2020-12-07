@@ -7,7 +7,7 @@ The options are:
 WithRawManifestOperation takes in a set of functions that transforms raw string manifests before applying it.
 The functions should be of the form:
 ```
-type ManifestOperation = func(context.Context, DeclarativeObject, string) (string, error)
+type ManifestOperation = func(ManifestOperationContext, DeclarativeObject, string) (string, error)
 ```
 
 ## WithObjectTransform

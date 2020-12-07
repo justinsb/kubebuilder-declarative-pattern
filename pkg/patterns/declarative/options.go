@@ -56,7 +56,16 @@ type reconcilerParams struct {
 
 type ManifestController interface {
 	// ResolveManifest returns a raw manifest as a map[string]string for a given CR object
-	ResolveManifest(ctx context.Context, object runtime.Object) (map[string]string, error)
+	ResolveManifest(ctx context.Context, object runtime.Object) (ResolvedManifest, error)
+}
+
+// ResolvedManifest represents a loaded manifest
+type ResolvedManifest interface {
+	// Files returns the files present in the package
+	Files() map[string]string
+
+	// PackageVersion returns the version identifier for the package
+	PackageVersion() string
 }
 
 type Sink interface {
@@ -65,7 +74,13 @@ type Sink interface {
 }
 
 // ManifestOperation is an operation that transforms raw string manifests before applying it
-type ManifestOperation = func(context.Context, DeclarativeObject, string) (string, error)
+type ManifestOperation = func(ManifestOperationContext, DeclarativeObject, string) (string, error)
+
+type ManifestOperationContext interface {
+	context.Context
+
+	Source() ResolvedManifest
+}
 
 // ObjectTransform is an operation that transforms the manifest objects before applying it
 type ObjectTransform = func(context.Context, DeclarativeObject, *manifest.Objects) error

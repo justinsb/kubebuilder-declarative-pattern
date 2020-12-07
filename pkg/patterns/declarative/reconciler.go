@@ -281,16 +281,17 @@ func (r *Reconciler) BuildDeploymentObjectsWithFs(ctx context.Context, name type
 	log := log.Log
 
 	// 1. Load the manifest
-	manifestFiles, err := r.loadRawManifest(ctx, instance)
+	src, err := r.loadRawManifest(ctx, instance)
 	if err != nil {
 		log.Error(err, "error loading raw manifest")
 		return nil, err
 	}
 	manifestObjects := &manifest.Objects{}
 	// 2. Perform raw string operations
-	for manifestPath, manifestStr := range manifestFiles {
+	for manifestPath, manifestStr := range src.Files() {
+		c := &rawManifestOperationContext{Context: ctx, src: src}
 		for _, t := range r.options.rawManifestOperations {
-			transformed, err := t(ctx, instance, manifestStr)
+			transformed, err := t(c, instance, manifestStr)
 			if err != nil {
 				log.Error(err, "error performing raw manifest operations")
 				return nil, err
@@ -366,6 +367,17 @@ func (r *Reconciler) BuildDeploymentObjectsWithFs(ctx context.Context, name type
 	return manifestObjects, nil
 }
 
+type rawManifestOperationContext struct {
+	context.Context
+	src ResolvedManifest
+}
+
+var _ ManifestOperationContext = &rawManifestOperationContext{}
+
+func (c *rawManifestOperationContext) Source() ResolvedManifest {
+	return c.src
+}
+
 // parseManifest parses the manifest into objects
 func (r *Reconciler) parseManifest(ctx context.Context, instance DeclarativeObject, manifestStr string) (*manifest.Objects, error) {
 	log := log.Log
@@ -396,7 +408,7 @@ func (r *Reconciler) transformManifest(ctx context.Context, instance Declarative
 }
 
 // loadRawManifest loads the raw manifest YAML from the repository
-func (r *Reconciler) loadRawManifest(ctx context.Context, o DeclarativeObject) (map[string]string, error) {
+func (r *Reconciler) loadRawManifest(ctx context.Context, o DeclarativeObject) (ResolvedManifest, error) {
 	s, err := r.options.manifestController.ResolveManifest(ctx, o)
 	if err != nil {
 		return nil, err

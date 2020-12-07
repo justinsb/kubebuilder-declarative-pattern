@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/utils"
+	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -56,7 +57,7 @@ func NewManifestLoader(channel string) (*ManifestLoader, error) {
 	return &ManifestLoader{repo: repo}, nil
 }
 
-func (c *ManifestLoader) ResolveManifest(ctx context.Context, object runtime.Object) (map[string]string, error) {
+func (c *ManifestLoader) ResolveManifest(ctx context.Context, object runtime.Object) (declarative.ResolvedManifest, error) {
 	log := log.Log
 
 	var (
@@ -107,11 +108,28 @@ func (c *ManifestLoader) ResolveManifest(ctx context.Context, object runtime.Obj
 	} else {
 		log.WithValues("version", version).Info("using specified version")
 	}
-	s := make(map[string]string)
-	s, err = c.repo.LoadManifest(ctx, componentName, id)
+	files, err := c.repo.LoadManifest(ctx, componentName, id)
 	if err != nil {
 		return nil, fmt.Errorf("error loading manifest: %v", err)
 	}
 
-	return s, nil
+	return &resolvedManifest{
+		files:          files,
+		packageVersion: id,
+	}, nil
+}
+
+type resolvedManifest struct {
+	files          map[string]string
+	packageVersion string
+}
+
+var _ declarative.ResolvedManifest = &resolvedManifest{}
+
+func (m *resolvedManifest) Files() map[string]string {
+	return m.files
+}
+
+func (m *resolvedManifest) PackageVersion() string {
+	return m.packageVersion
 }
