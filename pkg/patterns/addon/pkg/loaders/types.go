@@ -140,7 +140,7 @@ func (r *FSRepository) LoadManifest(ctx context.Context, packageName string, id 
 		if err != nil {
 			return nil, fmt.Errorf("error reading file %s: %v", filePath, err)
 		}
-		result[filePath] = string(b)
+		result[p.Name()] = string(b)
 	}
 
 	return result, nil

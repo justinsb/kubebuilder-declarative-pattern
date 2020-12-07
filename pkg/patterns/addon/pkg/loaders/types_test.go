@@ -22,6 +22,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"sigs.k8s.io/kustomize/api/filesys"
 )
 
@@ -63,7 +64,7 @@ func TestFSRepository_LoadManifest(t *testing.T) {
 	}
 
 	expected := map[string]string{
-		filePath: manifestStr,
+		"manifest.yaml": manifestStr,
 	}
 
 	ctx := context.Background()
@@ -76,6 +77,7 @@ func TestFSRepository_LoadManifest(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("expected %+v but got %+v", expected, actual)
+		t.Errorf("expected %+v but got %+v", expected, actual)
+		t.Fatalf("diff %v", cmp.Diff(expected, actual))
 	}
 }
