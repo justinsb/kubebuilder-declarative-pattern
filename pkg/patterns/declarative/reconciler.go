@@ -17,10 +17,10 @@ limitations under the License.
 package declarative
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -316,18 +316,21 @@ func (r *Reconciler) BuildDeploymentObjectsWithFs(ctx context.Context, name type
 
 		if fs != nil {
 			// 5. Write objects to filesystem for kustomizing
-			for _, item := range objects.Items {
-				json, err := item.JSON()
-				if err != nil {
-					log.Error(err, "error converting object to json")
-					return nil, err
-				}
-				fs.WriteFile(string(manifestPath), json)
+			var b bytes.Buffer
+			j, err := objects.JSONManifest()
+			if err != nil {
+				return nil, fmt.Errorf("error converting objects to json: %w", err)
 			}
+			b.Write([]byte(j))
 			for _, blob := range objects.Blobs {
-				fs.WriteFile(string(manifestPath), blob)
+				b.Write(blob)
+			}
+			// klog.Infof("wrote file %q: %q", "/"+manifestPath, b.String())
+			if err := fs.WriteFile("/"+manifestPath, b.Bytes()); err != nil {
+				return nil, fmt.Errorf("error writing to %q: %w", manifestPath, err)
 			}
 		}
+
 		manifestObjects.Path = filepath.Dir(manifestPath)
 		manifestObjects.Items = append(manifestObjects.Items, objects.Items...)
 		manifestObjects.Blobs = append(manifestObjects.Blobs, objects.Blobs...)
@@ -339,7 +342,7 @@ func (r *Reconciler) BuildDeploymentObjectsWithFs(ctx context.Context, name type
 		// run kustomize to create final manifest
 		opts := krusty.MakeDefaultOptions()
 		k := krusty.MakeKustomizer(fs, opts)
-		m, err := k.Run(manifestObjects.Path)
+		m, err := k.Run("/") // manifestObjects.Path)
 		if err != nil {
 			log.Error(err, "running kustomize to create final manifest")
 			return nil, fmt.Errorf("error running kustomize: %v", err)
