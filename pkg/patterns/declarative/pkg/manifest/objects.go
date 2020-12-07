@@ -27,6 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/yaml"
 )
 
 // Objects holds a collection of objects, so that we can filter / sequence them
@@ -242,6 +243,15 @@ func (o *Object) JSON() ([]byte, error) {
 	return b, nil
 }
 
+func (o *Object) YAML() ([]byte, error) {
+	b, err := yaml.Marshal(o.object.Object)
+	if err != nil {
+		return nil, err
+	}
+	o.json = b
+	return b, nil
+}
+
 // UnstructuredContent exposes the raw object, primarily for testing
 func (o *Object) UnstructuredObject() *unstructured.Unstructured {
 	return o.object
@@ -269,6 +279,24 @@ func (o *Objects) JSONManifest() (string, error) {
 			return "", fmt.Errorf("error building json: %v", err)
 		}
 		b.Write(json)
+	}
+
+	return b.String(), nil
+}
+
+// YAMLManifest returns the multi-object YAML form of the manifest.
+func (o *Objects) YAMLManifest() (string, error) {
+	var b bytes.Buffer
+
+	for i, item := range o.Items {
+		if i != 0 {
+			b.WriteString("\n---\n\n")
+		}
+		y, err := item.YAML()
+		if err != nil {
+			return "", fmt.Errorf("error building yaml: %w", err)
+		}
+		b.Write(y)
 	}
 
 	return b.String(), nil
