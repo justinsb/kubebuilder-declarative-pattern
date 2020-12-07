@@ -305,17 +305,8 @@ func (r *Reconciler) BuildDeploymentObjectsWithFs(ctx context.Context, name type
 			return nil, err
 		}
 
-		// 4. Perform object transformations
-		// (unless kustomize is in use, in which case we transform after running kustomize)
-		if !r.IsKustomizeOptionUsed() {
-			if err := r.transformManifest(ctx, instance, objects); err != nil {
-				log.Error(err, "error transforming manifest")
-				return nil, err
-			}
-		}
-
 		if fs != nil {
-			// 5. Write objects to filesystem for kustomizing
+			// 4. Write objects to filesystem for kustomizing
 			var b bytes.Buffer
 			j, err := objects.JSONManifest()
 			if err != nil {
@@ -360,11 +351,13 @@ func (r *Reconciler) BuildDeploymentObjectsWithFs(ctx context.Context, name type
 			return nil, err
 		}
 
-		if err := r.transformManifest(ctx, instance, objects); err != nil {
-			log.Error(err, "error transforming manifest")
-			return nil, err
-		}
 		manifestObjects.Items = objects.Items
+	}
+
+	// 5. Perform object transformations
+	if err := r.transformManifest(ctx, instance, manifestObjects); err != nil {
+		log.Error(err, "error transforming manifest")
+		return nil, err
 	}
 
 	// 6. Sort objects to work around dependent objects in the same manifest (eg: service-account, deployment)
