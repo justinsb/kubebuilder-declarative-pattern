@@ -25,6 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -36,7 +37,15 @@ import (
 // WatchDelay is the time between a Watch being dropped and attempting to resume it
 const WatchDelay = 30 * time.Second
 
-func NewDynamicWatch(config rest.Config) (*dynamicWatch, chan event.GenericEvent, error) {
+type DynamicWatch interface {
+	// Add registers a watch for changes to 'trigger' filtered by 'options' to raise an event on 'target'
+	Add(trigger schema.GroupVersionKind, options metav1.ListOptions, target metav1.ObjectMeta) error
+
+	// AddForGVR registers a watch for changes to 'trigger' filtered by 'options' to raise an event on 'target'
+	AddForGVR(ctx context.Context, trigger schema.GroupVersionResource, options metav1.ListOptions, callback func(watch.Event)) error
+}
+
+func NewDynamicWatch(config rest.Config) (DynamicWatch, chan event.GenericEvent, error) {
 	dw := &dynamicWatch{events: make(chan event.GenericEvent)}
 
 	restMapper, err := apiutil.NewDiscoveryRESTMapper(&config)
@@ -62,16 +71,27 @@ type dynamicWatch struct {
 	events     chan event.GenericEvent
 }
 
-func (dw *dynamicWatch) newDynamicClient(gvk schema.GroupVersionKind) (dynamic.ResourceInterface, error) {
-	mapping, err := dw.restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
-	if err != nil {
-		return nil, err
-	}
-	return dw.client.Resource(mapping.Resource), nil
+func (dw *dynamicWatch) newDynamicClient(gvr schema.GroupVersionResource) (dynamic.ResourceInterface, error) {
+	return dw.client.Resource(gvr), nil
 }
 
 // Add registers a watch for changes to 'trigger' filtered by 'options' to raise an event on 'target'
 func (dw *dynamicWatch) Add(trigger schema.GroupVersionKind, options metav1.ListOptions, target metav1.ObjectMeta) error {
+	ctx := context.TODO()
+
+	mapping, err := dw.restMapper.RESTMapping(trigger.GroupKind(), trigger.Version)
+	if err != nil {
+		return err
+	}
+
+	callback := func(ev watch.Event) {
+		dw.events <- event.GenericEvent{Object: clientObject{Object: ev.Object, ObjectMeta: &target}}
+	}
+	return dw.AddForGVR(ctx, mapping.Resource, options, callback)
+}
+
+// AddForGVR registers a watch for changes to 'trigger' filtered by 'options' to raise an event on 'target'
+func (dw *dynamicWatch) AddForGVR(ctx context.Context, trigger schema.GroupVersionResource, options metav1.ListOptions, callback func(watch.Event)) error {
 	client, err := dw.newDynamicClient(trigger)
 	if err != nil {
 		return fmt.Errorf("creating client for (%s): %v", trigger.String(), err)
@@ -79,7 +99,7 @@ func (dw *dynamicWatch) Add(trigger schema.GroupVersionKind, options metav1.List
 
 	go func() {
 		for {
-			dw.watchUntilClosed(client, trigger, options, target)
+			dw.watchUntilClosed(ctx, client, trigger, options, callback)
 
 			time.Sleep(WatchDelay)
 		}
@@ -102,27 +122,26 @@ type clientObject struct {
 // from this Watch but it will ensure we always Reconcile when needed`.
 //
 // [1] https://github.com/kubernetes/kubernetes/issues/54878#issuecomment-357575276
-func (dw *dynamicWatch) watchUntilClosed(client dynamic.ResourceInterface, trigger schema.GroupVersionKind, options metav1.ListOptions, target metav1.ObjectMeta) {
+func (dw *dynamicWatch) watchUntilClosed(ctx context.Context, client dynamic.ResourceInterface, trigger schema.GroupVersionResource, options metav1.ListOptions, callback func(watch.Event)) {
 	log := log.Log
 
-	events, err := client.Watch(context.TODO(), options)
-
+	events, err := client.Watch(ctx, options)
 	if err != nil {
-		log.WithValues("kind", trigger.String()).WithValues("namespace", target.Namespace).WithValues("labels", options.LabelSelector).Error(err, "adding watch to dynamic client")
+		log.WithValues("options", options).WithValues("trigger", trigger).Error(err, "adding watch to dynamic client")
 		return
 	}
 
-	log.WithValues("kind", trigger.String()).WithValues("namespace", target.Namespace).WithValues("labels", options.LabelSelector).Info("watch began")
+	log.WithValues("trigger", trigger.String()).WithValues("options", options).Info("watch began")
 
 	// Always clean up watchers
 	defer events.Stop()
 
-	for clientEvent := range events.ResultChan() {
-		log.WithValues("type", clientEvent.Type).WithValues("kind", trigger.String()).Info("broadcasting event")
-		dw.events <- event.GenericEvent{Object: clientObject{Object: clientEvent.Object, ObjectMeta: &target}}
+	for ev := range events.ResultChan() {
+		log.WithValues("type", ev.Type).WithValues("trigger", trigger.String()).Info("broadcasting event")
+		callback(ev)
 	}
 
-	log.WithValues("kind", trigger.String()).WithValues("namespace", target.Namespace).WithValues("labels", options.LabelSelector).Info("watch closed")
+	log.WithValues("trigger", trigger.String()).WithValues("options", options).Info("watch closed")
 
 	return
 }
