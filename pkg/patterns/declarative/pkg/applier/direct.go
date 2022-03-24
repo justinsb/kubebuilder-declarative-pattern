@@ -65,13 +65,25 @@ func (d *DirectApplier) Apply(ctx context.Context, opt ApplierOptions) error {
 		}
 	}
 
-	applyOpts := apply.NewApplyOptions(ioStreams)
-	applyOpts.Namespace = opt.Namespace
+	s := func(s string) *string {
+		return &s
+	}
+
+	applyOpts := &apply.ApplyOptions{
+		VisitedUids:       sets.NewString(),
+		VisitedNamespaces: sets.NewString(),
+		Recorder:          &genericclioptions.NoopRecorder{},
+		PrintFlags: &genericclioptions.PrintFlags{
+			OutputFormat: s("name"),
+			NamePrintFlags: &genericclioptions.NamePrintFlags{
+				Operation: "apply",
+			},
+		},
+		Namespace: opt.Namespace,
+	}
 	applyOpts.SetObjects(infos)
 	applyOpts.ToPrinter = func(operation string) (printers.ResourcePrinter, error) {
-		applyOpts.PrintFlags.NamePrintFlags.Operation = operation
-		cmdutil.PrintFlagsWithDryRunStrategy(applyOpts.PrintFlags, applyOpts.DryRunStrategy)
-		return applyOpts.PrintFlags.ToPrinter()
+		return &noopPrinter{}, nil
 	}
 	applyOpts.DeleteOptions = &cmdDelete.DeleteOptions{
 		IOStreams: ioStreams,
@@ -106,4 +118,13 @@ func (s *staticRESTClientGetter) ToRESTMapper() (meta.RESTMapper, error) {
 		return nil, fmt.Errorf("RESTMapper not set")
 	}
 	return s.RESTMapper, nil
+}
+
+type noopPrinter struct {
+}
+
+var _ printers.ResourcePrinter = &noopPrinter{}
+
+func (p *noopPrinter) PrintObj(runtime.Object, io.Writer) error {
+	return nil
 }
