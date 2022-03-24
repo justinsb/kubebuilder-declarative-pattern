@@ -45,40 +45,44 @@ type aggregator struct {
 	client client.Client
 }
 
-func (a *aggregator) Reconciled(ctx context.Context, src declarative.DeclarativeObject, objs *manifest.Objects, _ error) error {
+func (a *aggregator) Reconciled(ctx context.Context, src declarative.DeclarativeObject, objs *manifest.Objects, err error) error {
 	log := log.Log
 
 	statusHealthy := true
 	statusErrors := []string{}
 
-	for _, o := range objs.Items {
-		gk := o.Group + "/" + o.Kind
-		healthy := true
-		objKey := client.ObjectKey{
-			Name:      o.Name,
-			Namespace: o.Namespace,
-		}
-		// If the namespace isn't set on the object, we would want to use the namespace of src
-		if objKey.Namespace == "" {
-			objKey.Namespace = src.GetNamespace()
-		}
-		var err error
-		switch gk {
-		case "/Service":
-			healthy, err = a.service(ctx, objKey)
-		case "extensions/Deployment", "apps/Deployment":
-			healthy, err = a.deployment(ctx, objKey)
-		default:
-			log.WithValues("type", gk).V(2).Info("type not implemented for status aggregation, skipping")
+	if err == nil {
+		for _, o := range objs.Items {
+			gk := o.Group + "/" + o.Kind
+			healthy := true
+			objKey := client.ObjectKey{
+				Name:      o.GetName(),
+				Namespace: o.GetNamespace(),
+			}
+			// If the namespace isn't set on the object, we would want to use the namespace of src
+			if objKey.Namespace == "" {
+				objKey.Namespace = src.GetNamespace()
+			}
+			var err error
+			switch gk {
+			case "/Service":
+				healthy, err = a.service(ctx, objKey)
+			case "extensions/Deployment", "apps/Deployment":
+				healthy, err = a.deployment(ctx, objKey)
+			default:
+				log.WithValues("type", gk).V(2).Info("type not implemented for status aggregation, skipping")
+			}
+
+			statusHealthy = statusHealthy && healthy
+			if err != nil {
+				statusErrors = append(statusErrors, fmt.Sprintf("%v", err))
+			}
 		}
 
-		statusHealthy = statusHealthy && healthy
-		if err != nil {
-			statusErrors = append(statusErrors, fmt.Sprintf("%v", err))
-		}
+		log.WithValues("object", src).WithValues("status", statusHealthy).V(2).Info("built status")
+	} else {
+		statusErrors = append(statusErrors, fmt.Sprintf("%v", err))
 	}
-
-	log.WithValues("object", src).WithValues("status", statusHealthy).V(2).Info("built status")
 
 	currentStatus, err := utils.GetCommonStatus(src)
 	if err != nil {

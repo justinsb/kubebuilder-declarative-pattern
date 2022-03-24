@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
@@ -213,6 +214,23 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 		return objects, fmt.Errorf("error parsing list kind: %v", err)
 	}
 
+	ns := ""
+	if !r.options.preserveNamespace {
+		ns = name.Namespace
+	}
+
+	// For all namespaced objects, set the namespace if we haven't already set it
+	// This means that injectOwnerRefs can correctly detect the same-namespace etc
+	for _, object := range objects.Items {
+		if r.options.preserveNamespace && object.GetNamespace() != "" {
+			continue
+		}
+
+		if err := r.setNamespace(ctx, object, name.Namespace); err != nil {
+			return nil, err
+		}
+	}
+
 	err = r.injectOwnerRef(ctx, instance, objects)
 	if err != nil {
 		return objects, err
@@ -255,11 +273,6 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 		}
 
 		extraArgs = append(extraArgs, "--prune", "--selector", strings.Join(labels, ","))
-	}
-
-	ns := ""
-	if !r.options.preserveNamespace {
-		ns = name.Namespace
 	}
 
 	if r.CollectMetrics() {
@@ -509,6 +522,10 @@ func (r *Reconciler) injectOwnerRef(ctx context.Context, instance DeclarativeObj
 		}
 
 		gvk, err := apiutil.GVKForObject(owner, r.mgr.GetScheme())
+		if err != nil {
+			log.WithValues("object", o).Error(err, "failed to get GVK")
+			continue
+		}
 		if gvk.Group == "" || gvk.Version == "" {
 			log.WithValues("object", o).WithValues("GroupVersionKind", gvk).Info("is not valid")
 			continue
@@ -599,6 +616,8 @@ func (r *Reconciler) CollectMetrics() bool {
 }
 
 func GetObjectFromCluster(obj *manifest.Object, r *Reconciler) (*unstructured.Unstructured, error) {
+	ctx := context.TODO()
+
 	getOptions := metav1.GetOptions{}
 	gvk := obj.GroupVersionKind()
 
@@ -610,7 +629,30 @@ func GetObjectFromCluster(obj *manifest.Object, r *Reconciler) (*unstructured.Un
 	name := obj.GetName()
 	unstruct, err := r.dynamicClient.Resource(mapping.Resource).Namespace(ns).Get(ctx, name, getOptions)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get object: %w", err)
+		j, _ := obj.JSON()
+		log.Log.Info("object is", "object", string(j))
+		return nil, fmt.Errorf("unable to get %s %s/%s: %w", gvk.Kind, ns, name, err)
 	}
 	return unstruct, nil
+}
+
+func (r *Reconciler) setNamespace(ctx context.Context, object *manifest.Object, ns string) error {
+	gvk := schema.GroupVersionKind{
+		Group:   object.Group,
+		Kind:    object.Kind,
+		Version: object.Version,
+	}
+
+	restMapping, err := r.restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if err != nil {
+		return fmt.Errorf("error getting rest mapping for %v: %w", gvk, err)
+	}
+
+	if restMapping.Scope == meta.RESTScopeNamespace {
+		if err := object.SetNamespace(ns); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
