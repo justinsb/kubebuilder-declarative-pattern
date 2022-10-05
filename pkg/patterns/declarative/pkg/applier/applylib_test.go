@@ -77,7 +77,8 @@ func TestApplySetApplier(t *testing.T) {
 
 		t.Logf("replacing old url prefix %q", "http://"+restConfig.Host)
 		requestLog.ReplaceURLPrefix("http://"+restConfig.Host, "http://kube-apiserver")
-		requests := requestLog.FormatYAML()
+		requestLog.RemoveUserAgent()
+		requests := requestLog.FormatHTTP()
 
 		h.CompareGoldenFile(filepath.Join(testdir, "expected.yaml"), requests)
 	})

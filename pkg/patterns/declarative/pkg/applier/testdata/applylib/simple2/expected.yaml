@@ -1,31 +1,19 @@
-header:
-  Accept:
-  - application/json, */*
-  User-Agent:
-  - applier.test/v0.0.0 (linux/amd64) kubernetes/$Format
-method: GET
-url: http://kube-apiserver/api/v1?timeout=32s
+GET http://kube-apiserver/api/v1?timeout=32s
+Accept: application/json, */*
+
 
 ---
-body: '{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"ns1"}}'
-header:
-  Accept:
-  - application/json
-  Content-Type:
-  - application/apply-patch+yaml
-  User-Agent:
-  - applier.test/v0.0.0 (linux/amd64) kubernetes/$Format
-method: PATCH
-url: http://kube-apiserver/api/v1/namespaces/ns1?fieldManager=kdp-test
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1?fieldManager=kdp-test
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"ns1"}}
 
 ---
-body: '{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"ns2"}}'
-header:
-  Accept:
-  - application/json
-  Content-Type:
-  - application/apply-patch+yaml
-  User-Agent:
-  - applier.test/v0.0.0 (linux/amd64) kubernetes/$Format
-method: PATCH
-url: http://kube-apiserver/api/v1/namespaces/ns2?fieldManager=kdp-test
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns2?fieldManager=kdp-test
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"ns2"}}
