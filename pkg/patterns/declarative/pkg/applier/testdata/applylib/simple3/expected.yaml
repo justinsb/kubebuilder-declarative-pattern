@@ -4,45 +4,28 @@ header:
   User-Agent:
   - applier.test/v0.0.0 (linux/amd64) kubernetes/$Format
 method: GET
-url: http://kube-apiserver/api?timeout=32s
-
----
-header:
-  Accept:
-  - application/json, */*
-  User-Agent:
-  - applier.test/v0.0.0 (linux/amd64) kubernetes/$Format
-method: GET
-url: http://kube-apiserver/apis?timeout=32s
-
----
-header:
-  Accept:
-  - application/json, */*
-  User-Agent:
-  - applier.test/v0.0.0 (linux/amd64) kubernetes/$Format
-method: GET
 url: http://kube-apiserver/api/v1?timeout=32s
 
 ---
+body: '{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"ns1"}}'
 header:
   Accept:
-  - application/json, */*
+  - application/json
+  Content-Type:
+  - application/apply-patch+yaml
   User-Agent:
   - applier.test/v0.0.0 (linux/amd64) kubernetes/$Format
-method: GET
-url: http://kube-apiserver/api/v1?timeout=32s
+method: PATCH
+url: http://kube-apiserver/api/v1/namespaces/ns1?fieldManager=kdp-test
 
 ---
+body: '{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"ns2"}}'
 header:
   Accept:
   - application/json
-method: GET
-url: http://kube-apiserver/api/v1/namespaces/ns1
-
----
-header:
-  Accept:
-  - application/json
-method: GET
-url: http://kube-apiserver/api/v1/namespaces/ns2
+  Content-Type:
+  - application/apply-patch+yaml
+  User-Agent:
+  - applier.test/v0.0.0 (linux/amd64) kubernetes/$Format
+method: PATCH
+url: http://kube-apiserver/api/v1/namespaces/ns2?fieldManager=kdp-test
