@@ -1,0 +1,7 @@
+apiVersion: addons.example.org/v1alpha1
+kind: SimpleTest
+metadata:
+  name: simple1
+  namespace: ns1
+spec:
+  channel: stable

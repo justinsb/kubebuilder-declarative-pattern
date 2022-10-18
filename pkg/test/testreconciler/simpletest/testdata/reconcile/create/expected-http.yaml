@@ -1,0 +1,76 @@
+GET http://kube-apiserver/apis/addons.example.org/v1alpha1?timeout=32s
+Accept: application/json, */*
+
+
+---
+
+GET http://kube-apiserver/apis/addons.example.org/v1alpha1/simpletests?limit=500&resourceVersion=0
+Accept: application/json, */*
+
+
+---
+
+GET http://kube-apiserver/apis/addons.example.org/v1alpha1/simpletests?allowWatchBookmarks=true&resourceVersion=2&timeoutSeconds=<replaced>&watch=true
+Accept: application/json, */*
+
+
+---
+
+GET http://kube-apiserver/api/v1?timeout=32s
+Accept: application/json, */*
+
+
+---
+
+GET http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo
+Accept: application/json
+
+
+---
+
+GET http://kube-apiserver/api/v1/configmaps?limit=500&resourceVersion=0
+Accept: application/json
+
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo?fieldManager=simpletest-controller&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000001"}]}}
+
+---
+
+GET http://kube-apiserver/api/v1/configmaps?allowWatchBookmarks=true&resourceVersion=2&timeoutSeconds=<replaced>&watch=true
+Accept: application/json
+
+
+---
+
+GET http://kube-apiserver/api/v1/configmaps?allowWatchBookmarks=true&labelSelector=addons.example.org%2Fsimpletest%3Dsimple1&watch=true
+Accept: application/json
+
+
+---
+
+PUT http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1/status
+Accept: application/json, */*
+Content-Type: application/json
+
+{"kind":"SimpleTest","apiVersion":"addons.example.org/v1alpha1","metadata":{"name":"simple1","namespace":"ns1","uid":"00000000-0000-0000-0000-000000000001","resourceVersion":"1","creationTimestamp":"2022-01-01T00:00:00Z"},"spec":{"channel":"stable"},"status":{"healthy":true}}
+
+
+---
+
+GET http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo
+Accept: application/json
+
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo?fieldManager=simpletest-controller&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000001"}]}}

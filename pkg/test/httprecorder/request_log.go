@@ -3,6 +3,7 @@ package httprecorder
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -81,4 +82,17 @@ func (l *RequestLog) RemoveHeader(k string) {
 
 func (l *RequestLog) RemoveUserAgent() {
 	l.RemoveHeader("user-agent")
+}
+
+func (l *RequestLog) RegexReplaceURL(find string, replace string) {
+	for i := range l.Requests {
+		request := &l.Requests[i]
+		u := request.URL
+		r, err := regexp.Compile(find)
+		if err != nil {
+			klog.Fatalf("failed to compile regex %q: %v", find, err)
+		}
+		u = r.ReplaceAllString(u, replace)
+		request.URL = u
+	}
 }
