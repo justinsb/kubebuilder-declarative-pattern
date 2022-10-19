@@ -28,8 +28,13 @@ func (a *ApplySetApplier) Apply(ctx context.Context, opt ApplierOptions) error {
 		return fmt.Errorf("error parsing manifest: %w", err)
 	}
 
+	patchOptions := a.patchOptions
+
 	for _, arg := range opt.ExtraArgs {
 		switch arg {
+		case "--force":
+			force := true
+			patchOptions.Force = &force
 
 		default:
 			return fmt.Errorf("extraArg %q is not supported by the ApplySetApplier", arg)
@@ -44,7 +49,7 @@ func (a *ApplySetApplier) Apply(ctx context.Context, opt ApplierOptions) error {
 	restMapper := opt.RESTMapper
 
 	options := applyset.Options{
-		PatchOptions: a.patchOptions,
+		PatchOptions: patchOptions,
 		RESTMapper:   restMapper,
 		Client:       dynamicClient,
 	}
