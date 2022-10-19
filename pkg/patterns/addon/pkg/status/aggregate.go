@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/apis/v1alpha1"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/utils"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -93,7 +94,7 @@ func (a *aggregator) Reconciled(ctx context.Context, src declarative.Declarative
 	status.Healthy = statusHealthy
 	status.Errors = statusErrors
 
-	if !reflect.DeepEqual(status, currentStatus) {
+	if !statusEqual(status, currentStatus) {
 		err := utils.SetCommonStatus(src, status)
 		if err != nil {
 			return err
@@ -134,4 +135,14 @@ func (a *aggregator) service(ctx context.Context, key client.ObjectKey) (bool, e
 	}
 
 	return true, nil
+}
+
+func statusEqual(l, r v1alpha1.CommonStatus) bool {
+	if len(l.Errors) == 0 {
+		l.Errors = nil
+	}
+	if len(r.Errors) == 0 {
+		r.Errors = nil
+	}
+	return reflect.DeepEqual(l, r)
 }
