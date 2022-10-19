@@ -21,6 +21,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
+	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative/pkg/applier"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative/pkg/manifest"
 )
 
@@ -47,6 +48,8 @@ type reconcilerParams struct {
 	kustomize         bool
 	validate          bool
 	metrics           bool
+
+	applier applier.Applier
 
 	sink       Sink
 	ownerFn    OwnerSelector
@@ -213,6 +216,14 @@ func WithReconcileMetrics(metricsDuration int, ot *ObjectTracker) reconcilerOpti
 			ot.setMetricsDurationInternal(metricsDuration)
 		}
 
+		return p
+	}
+}
+
+// WithApplier chooses the apply library to use
+func WithApplier(applier applier.Applier) reconcilerOption {
+	return func(p reconcilerParams) reconcilerParams {
+		p.applier = applier
 		return p
 	}
 }
