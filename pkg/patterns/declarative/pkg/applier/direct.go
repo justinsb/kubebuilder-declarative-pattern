@@ -1,3 +1,5 @@
+//go:build kubectl
+
 package applier
 
 import (

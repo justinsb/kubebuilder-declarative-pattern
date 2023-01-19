@@ -32,12 +32,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/diff"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/scheme"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/loaders"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative/pkg/manifest"
-	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/test/mocks"
 	"sigs.k8s.io/kustomize/kyaml/filesys"
 )
 
@@ -51,9 +51,9 @@ func NewValidator(t *testing.T, b *scheme.Builder) *validator {
 	addon.Init()
 	v.findChannelsPath()
 
-	v.client = mocks.NewClient(v.scheme)
-	v.mgr = mocks.NewManager(v.client)
-	v.mgr.Scheme = v.scheme
+	// v.client = mocks.NewClient(v.scheme)
+	// v.mgr = mocks.NewManager(v.client)
+	// v.mgr.Scheme = v.scheme
 	return v
 }
 
@@ -61,8 +61,8 @@ type validator struct {
 	T       *testing.T
 	scheme  *runtime.Scheme
 	TestDir string
-	mgr     mocks.Manager
-	client  *mocks.FakeClient
+	// mgr     mocks.Manager
+	client client.Client
 }
 
 // findChannelsPath will search for a channels directory, which is helpful when running under bazel
@@ -129,14 +129,6 @@ func (v *validator) findChannelsPath() {
 	t.Logf("flagChannel = %s", loaders.FlagChannel)
 }
 
-func (v *validator) Manager() *mocks.Manager {
-	return &v.mgr
-}
-
-func (v *validator) Client() *mocks.FakeClient {
-	return v.client
-}
-
 func (v *validator) Validate(r declarative.Reconciler) {
 	t := v.T
 	t.Helper()
@@ -179,7 +171,7 @@ func (v *validator) Validate(r declarative.Reconciler) {
 			continue
 		}
 
-		objectsToCleanup := []runtime.Object{}
+		objectsToCleanup := []client.Object{}
 		// Check if there is a file containing side inputs for this test
 		sideInputPath := strings.Replace(p, ".in.yaml", ".side_in.yaml", -1)
 		sideInputRead, err := os.ReadFile(sideInputPath)
@@ -203,8 +195,11 @@ func (v *validator) Validate(r declarative.Reconciler) {
 					t.Errorf("error parsing resource in %s: %v", p, err)
 					continue
 				}
-				v.client.CreateRuntimeObject(ctx, decoded)
-				objectsToCleanup = append(objectsToCleanup, decoded)
+				obj := decoded.(client.Object)
+				if err := v.client.Create(ctx, obj); err != nil {
+					t.Fatalf("error creating resource: %v", err)
+				}
+				objectsToCleanup = append(objectsToCleanup, obj)
 			}
 		}
 
@@ -307,7 +302,9 @@ func (v *validator) Validate(r declarative.Reconciler) {
 		}
 
 		for _, objectToCleanup := range objectsToCleanup {
-			v.client.DeleteRuntimeObject(ctx, objectToCleanup)
+			if err := v.client.Delete(ctx, objectToCleanup); err != nil {
+				t.Errorf("failed to delete object: %v", err)
+			}
 		}
 	}
 }

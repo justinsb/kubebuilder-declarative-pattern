@@ -1,3 +1,5 @@
+//go:build kubectl
+
 /*
 Copyright 2019 The Kubernetes Authors.
 

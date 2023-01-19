@@ -94,7 +94,7 @@ func (e *ErrorResult) Error() string {
 }
 
 // For mocking
-var defaultApplier = applier.NewDirectApplier()
+var defaultApplier applier.Applier = nil // applier.NewDirectApplier()
 
 func (r *Reconciler) Init(mgr manager.Manager, prototype DeclarativeObject, opts ...ReconcilerOption) error {
 	r.prototype = prototype
