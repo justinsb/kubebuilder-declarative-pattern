@@ -5,6 +5,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/clock"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
 	addonsv1alpha1 "sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/apis/v1alpha1"
 )
@@ -18,20 +19,21 @@ const (
 // SetInProgress set the present condition to a single condition with type "Ready" and status "false". This means
 // the current resources is still reconciling. If any deployment manifests are abnormal, their abnormal status condition will
 // be recorded in the `message` field.
-func SetInProgress(commonStatus *addonsv1alpha1.CommonStatus, abnormalTrueConditions []status.Condition) {
-	setCondition(metav1.ConditionFalse, commonStatus, abnormalTrueConditions)
+func SetInProgress(clock clock.Clock, commonStatus *addonsv1alpha1.CommonStatus, abnormalTrueConditions []status.Condition) {
+	setCondition(clock, metav1.ConditionFalse, commonStatus, abnormalTrueConditions)
 }
 
 // SetReady set the present condition to a single condition with type "Ready" and status "true". This means
 // all the deployment manifests are reconciled.
-func SetReady(commonStatus *addonsv1alpha1.CommonStatus, abnormalTrueConditions []status.Condition) {
-	setCondition(metav1.ConditionTrue, commonStatus, abnormalTrueConditions)
+func SetReady(clock clock.Clock, commonStatus *addonsv1alpha1.CommonStatus, abnormalTrueConditions []status.Condition) {
+	setCondition(clock, metav1.ConditionTrue, commonStatus, abnormalTrueConditions)
 }
 
-func setCondition(status metav1.ConditionStatus, commonStatus *addonsv1alpha1.CommonStatus, abnormalTrueConditions []status.Condition) {
+func setCondition(clock clock.Clock, status metav1.ConditionStatus, commonStatus *addonsv1alpha1.CommonStatus, abnormalTrueConditions []status.Condition) {
 	newCondition := new(abnormalTrueConditions)
 	newCondition.Status = status
 	newCondition.Type = ReadyType
+	newCondition.LastTransitionTime = metav1.NewTime(clock.Now())
 	meta.SetStatusCondition(&commonStatus.Conditions, newCondition)
 }
 

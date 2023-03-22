@@ -14,9 +14,11 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	"k8s.io/klog/v2/klogr"
+	clocktesting "k8s.io/utils/clock/testing"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"sigs.k8s.io/kubebuilder-declarative-pattern/mockkubeapiserver"
+	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/clocks"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/loaders"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/status"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative"
@@ -56,6 +58,9 @@ func TestSimpleReconciler(t *testing.T) {
 
 func testSimpleReconciler(h *testharness.Harness, testdir string, applier applier.Applier, status declarative.Status) {
 	ctx := context.Background()
+
+	fakeClock := &clocktesting.FakeClock{}
+	ctx = clocks.IntoContext(ctx, fakeClock)
 
 	k8s, err := mockkubeapiserver.NewMockKubeAPIServer(":0")
 	if err != nil {

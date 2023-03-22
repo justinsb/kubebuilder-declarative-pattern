@@ -7,6 +7,7 @@ import (
 	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/clocks"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/utils"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative"
 )
@@ -21,6 +22,7 @@ func NewKstatusAgregator(_ client.Client, _ *declarative.Reconciler) *kstatusAgg
 
 func (k *kstatusAggregator) BuildStatus(ctx context.Context, info *declarative.StatusInfo) error {
 	log := log.FromContext(ctx)
+	clock := clocks.FromContext(ctx)
 
 	currentStatus, err := utils.GetCommonStatus(info.Subject)
 	if err != nil {
@@ -81,9 +83,9 @@ func (k *kstatusAggregator) BuildStatus(ctx context.Context, info *declarative.S
 		aggregatedPhase := aggregateStatus(statusMap)
 		// Update the Conditions for the declarativeObject status.
 		if aggregatedPhase == status.CurrentStatus {
-			SetReady(&currentStatus, abnormalConditions)
+			SetReady(clock, &currentStatus, abnormalConditions)
 		} else {
-			SetInProgress(&currentStatus, abnormalConditions)
+			SetInProgress(clock, &currentStatus, abnormalConditions)
 		}
 		currentStatus.Phase = string(aggregatedPhase)
 	}

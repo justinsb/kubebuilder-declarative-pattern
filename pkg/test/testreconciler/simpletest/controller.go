@@ -17,8 +17,12 @@ limitations under the License.
 package simpletest
 
 import (
+	"context"
+	"time"
+
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog/v2"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -84,7 +88,10 @@ func (r *SimpleTestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	c, err := controller.New("simpletest-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("simpletest-controller", mgr, controller.Options{
+		// TODO: BaseContext
+		Reconciler: r,
+	})
 	if err != nil {
 		return err
 	}
