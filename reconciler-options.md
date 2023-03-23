@@ -24,6 +24,9 @@ WithManifestController overrides the default source for loading manifests.
 WithApplyPrune turns on the --prune behavior of kubectl apply. This behavior deletes any objects that exist in the API server that are not deployed by the current version of the manifest which match a label specific to the addon instance.
 This option requires (WithLabels)[#withLabels] to be used.
 
+## WithApplysetPrune
+TODO
+
 ## WithOwner
 WithOwner sets an owner ref on each deployed object by the [OwnerSelector].
 

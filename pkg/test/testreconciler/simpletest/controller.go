@@ -66,6 +66,8 @@ func (r *SimpleTestReconciler) setupReconciler(mgr ctrl.Manager) error {
 		// TODO: Readd prune
 		//declarative.WithApplyPrune(),
 
+		declarative.WithApplysetPrune(),
+
 		declarative.WithObjectTransform(addon.ApplyPatches),
 
 		// Add other options for testing

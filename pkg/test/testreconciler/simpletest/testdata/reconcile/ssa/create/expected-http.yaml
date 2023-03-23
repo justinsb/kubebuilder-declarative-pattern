@@ -114,19 +114,35 @@ Date: (removed)
 
 ---
 
+PATCH http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1?fieldValidation=Warn
+Accept: application/json, */*
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1"}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 536
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"3","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"}}
+
+---
+
 PATCH http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo?fieldManager=kdp-test&force=true
 Accept: application/json
 Content-Type: application/apply-patch+yaml
 
-{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]}}
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]}}
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 492
+Content-Length: 583
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"3","uid":"00000000-0000-0000-0000-000000000003"}}
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
 
 ---
 
@@ -134,15 +150,31 @@ PATCH http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment
 Accept: application/json
 Content-Type: application/apply-patch+yaml
 
-{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 666
+Content-Length: 757
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1?fieldValidation=Warn
+Accept: application/json, */*
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1"}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 536
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"6","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"}}
 
 ---
 
@@ -151,11 +183,11 @@ Accept: application/json
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 492
+Content-Length: 583
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"3","uid":"00000000-0000-0000-0000-000000000003"}}
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
 
 ---
 
@@ -164,11 +196,11 @@ Accept: application/json
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 666
+Content-Length: 757
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
 
 ---
 
@@ -176,15 +208,15 @@ PUT http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simple
 Accept: application/json, */*
 Content-Type: application/json
 
-{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"creationTimestamp":"2022-01-01T00:00:01Z","name":"simple1","namespace":"ns1","resourceVersion":"2","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"InProgress"}}
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"6","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"InProgress"}}
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 488
+Content-Length: 774
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"creationTimestamp":"2022-01-01T00:00:01Z","name":"simple1","namespace":"ns1","resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"InProgress"}}
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"7","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"InProgress"}}
 
 ---
 
@@ -193,11 +225,11 @@ Accept: application/json
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 492
+Content-Length: 583
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"3","uid":"00000000-0000-0000-0000-000000000003"}}
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
 
 ---
 
@@ -206,11 +238,27 @@ Accept: application/json
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 666
+Content-Length: 757
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1?fieldValidation=Warn
+Accept: application/json, */*
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1"}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 774
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"8","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"InProgress"}}
 
 ---
 
@@ -218,15 +266,15 @@ PATCH http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo?fieldManager=kd
 Accept: application/json
 Content-Type: application/apply-patch+yaml
 
-{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]}}
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]}}
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 492
+Content-Length: 583
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"3","uid":"00000000-0000-0000-0000-000000000003"}}
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
 
 ---
 
@@ -234,15 +282,48 @@ PATCH http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment
 Accept: application/json
 Content-Type: application/apply-patch+yaml
 
-{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 666
+Content-Length: 757
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PUT http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1/status
+Accept: application/json, */*
+Content-Type: application/json
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"8","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"Applying"}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 772
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"9","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"Applying"}}
+
+---
+
+POST http://kube-apiserver/api/v1/namespaces/ns1/events
+Accept: application/json, */*
+Content-Type: application/json
+
+{"kind":"Event","apiVersion":"v1","metadata":{"name":"simple1.174ef00ed95ac92f","namespace":"ns1","creationTimestamp":null},"involvedObject":{"kind":"SimpleTest","namespace":"ns1","name":"simple1","uid":"00000000-0000-0000-0000-000000000002","apiVersion":"addons.example.org/v1alpha1","resourceVersion":"8"},"reason":"InternalError","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for ConfigMap: ControllerRESTMaper does not support RESTMappings operation","source":{"component":"addon-controller"},"firstTimestamp":"2023-03-23T03:54:17Z","lastTimestamp":"2023-03-23T03:54:17Z","count":1,"type":"Warning","eventTime":null,"reportingComponent":"","reportingInstance":""}
+
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 806
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","count":1,"eventTime":null,"firstTimestamp":"2023-03-23T03:54:17Z","involvedObject":{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","name":"simple1","namespace":"ns1","resourceVersion":"8","uid":"00000000-0000-0000-0000-000000000002"},"kind":"Event","lastTimestamp":"2023-03-23T03:54:17Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for ConfigMap: ControllerRESTMaper does not support RESTMappings operation","metadata":{"creationTimestamp":"2022-01-01T00:00:04Z","name":"simple1.174ef00ed95ac92f","namespace":"ns1","resourceVersion":"10","uid":"00000000-0000-0000-0000-000000000005"},"reason":"InternalError","reportingComponent":"","reportingInstance":"","source":{"component":"addon-controller"},"type":"Warning"}
 
 ---
 
@@ -251,11 +332,11 @@ Accept: application/json
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 492
+Content-Length: 583
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"3","uid":"00000000-0000-0000-0000-000000000003"}}
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
 
 ---
 
@@ -264,8 +345,566 @@ Accept: application/json
 
 200 OK
 Cache-Control: no-cache, private
-Content-Length: 666
+Content-Length: 757
 Content-Type: application/json
 Date: (removed)
 
-{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1?fieldValidation=Warn
+Accept: application/json, */*
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1"}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 773
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"11","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"Applying"}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+PATCH http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/events/simple1.174ef00ed95ac92f
+Accept: application/json, */*
+Content-Type: application/strategic-merge-patch+json
+
+{"count":2,"lastTimestamp":"2023-03-23T03:54:17Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for ConfigMap: ControllerRESTMaper does not support RESTMappings operation"}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 950
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","count":2,"eventTime":null,"firstTimestamp":"2023-03-23T03:54:17Z","involvedObject":{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","name":"simple1","namespace":"ns1","resourceVersion":"8","uid":"00000000-0000-0000-0000-000000000002"},"kind":"Event","lastTimestamp":"2023-03-23T03:54:17Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for ConfigMap: ControllerRESTMaper does not support RESTMappings operation","metadata":{"creationTimestamp":"2022-01-01T00:00:04Z","managedFields":[{"apiVersion":"v1","fieldsType":"FieldsV1","fieldsV1":{"f:count":{},"f:lastTimestamp":{},"f:message":{}},"operation":"Apply"}],"name":"simple1.174ef00ed95ac92f","namespace":"ns1","resourceVersion":"12","uid":"00000000-0000-0000-0000-000000000005"},"reason":"InternalError","reportingComponent":"","reportingInstance":"","source":{"component":"addon-controller"},"type":"Warning"}
+
+---
+
+GET http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+GET http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1?fieldValidation=Warn
+Accept: application/json, */*
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1"}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 773
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"13","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"Applying"}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+PATCH http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/events/simple1.174ef00ed95ac92f
+Accept: application/json, */*
+Content-Type: application/strategic-merge-patch+json
+
+{"count":3,"lastTimestamp":"2023-03-23T03:54:17Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for ConfigMap: ControllerRESTMaper does not support RESTMappings operation"}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 950
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","count":3,"eventTime":null,"firstTimestamp":"2023-03-23T03:54:17Z","involvedObject":{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","name":"simple1","namespace":"ns1","resourceVersion":"8","uid":"00000000-0000-0000-0000-000000000002"},"kind":"Event","lastTimestamp":"2023-03-23T03:54:17Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for ConfigMap: ControllerRESTMaper does not support RESTMappings operation","metadata":{"creationTimestamp":"2022-01-01T00:00:04Z","managedFields":[{"apiVersion":"v1","fieldsType":"FieldsV1","fieldsV1":{"f:count":{},"f:lastTimestamp":{},"f:message":{}},"operation":"Apply"}],"name":"simple1.174ef00ed95ac92f","namespace":"ns1","resourceVersion":"14","uid":"00000000-0000-0000-0000-000000000005"},"reason":"InternalError","reportingComponent":"","reportingInstance":"","source":{"component":"addon-controller"},"type":"Warning"}
+
+---
+
+GET http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+GET http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1?fieldValidation=Warn
+Accept: application/json, */*
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1"}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 773
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"15","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"Applying"}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+PATCH http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+POST http://kube-apiserver/api/v1/namespaces/ns1/events
+Accept: application/json, */*
+Content-Type: application/json
+
+{"kind":"Event","apiVersion":"v1","metadata":{"name":"simple1.174ef00ef0ccddb2","namespace":"ns1","creationTimestamp":null},"involvedObject":{"kind":"SimpleTest","namespace":"ns1","name":"simple1","uid":"00000000-0000-0000-0000-000000000002","apiVersion":"addons.example.org/v1alpha1","resourceVersion":"15"},"reason":"InternalError","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for Deployment.apps: ControllerRESTMaper does not support RESTMappings operation","source":{"component":"addon-controller"},"firstTimestamp":"2023-03-23T03:54:18Z","lastTimestamp":"2023-03-23T03:54:18Z","count":1,"type":"Warning","eventTime":null,"reportingComponent":"","reportingInstance":""}
+
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 813
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","count":1,"eventTime":null,"firstTimestamp":"2023-03-23T03:54:18Z","involvedObject":{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","name":"simple1","namespace":"ns1","resourceVersion":"15","uid":"00000000-0000-0000-0000-000000000002"},"kind":"Event","lastTimestamp":"2023-03-23T03:54:18Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for Deployment.apps: ControllerRESTMaper does not support RESTMappings operation","metadata":{"creationTimestamp":"2022-01-01T00:00:05Z","name":"simple1.174ef00ef0ccddb2","namespace":"ns1","resourceVersion":"16","uid":"00000000-0000-0000-0000-000000000006"},"reason":"InternalError","reportingComponent":"","reportingInstance":"","source":{"component":"addon-controller"},"type":"Warning"}
+
+---
+
+GET http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+GET http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1?fieldValidation=Warn
+Accept: application/json, */*
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1"}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 773
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"17","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"Applying"}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+PATCH http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/events/simple1.174ef00ed95ac92f
+Accept: application/json, */*
+Content-Type: application/strategic-merge-patch+json
+
+{"count":4,"lastTimestamp":"2023-03-23T03:54:18Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for ConfigMap: ControllerRESTMaper does not support RESTMappings operation"}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 950
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","count":4,"eventTime":null,"firstTimestamp":"2023-03-23T03:54:17Z","involvedObject":{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","name":"simple1","namespace":"ns1","resourceVersion":"8","uid":"00000000-0000-0000-0000-000000000002"},"kind":"Event","lastTimestamp":"2023-03-23T03:54:18Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for ConfigMap: ControllerRESTMaper does not support RESTMappings operation","metadata":{"creationTimestamp":"2022-01-01T00:00:04Z","managedFields":[{"apiVersion":"v1","fieldsType":"FieldsV1","fieldsV1":{"f:count":{},"f:lastTimestamp":{},"f:message":{}},"operation":"Apply"}],"name":"simple1.174ef00ed95ac92f","namespace":"ns1","resourceVersion":"18","uid":"00000000-0000-0000-0000-000000000005"},"reason":"InternalError","reportingComponent":"","reportingInstance":"","source":{"component":"addon-controller"},"type":"Warning"}
+
+---
+
+GET http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+GET http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1?fieldValidation=Warn
+Accept: application/json, */*
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1"}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 773
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"19","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"Applying"}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+PATCH http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/events/simple1.174ef00ef0ccddb2
+Accept: application/json, */*
+Content-Type: application/strategic-merge-patch+json
+
+{"count":2,"lastTimestamp":"2023-03-23T03:54:18Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for Deployment.apps: ControllerRESTMaper does not support RESTMappings operation"}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 957
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","count":2,"eventTime":null,"firstTimestamp":"2023-03-23T03:54:18Z","involvedObject":{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","name":"simple1","namespace":"ns1","resourceVersion":"15","uid":"00000000-0000-0000-0000-000000000002"},"kind":"Event","lastTimestamp":"2023-03-23T03:54:18Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for Deployment.apps: ControllerRESTMaper does not support RESTMappings operation","metadata":{"creationTimestamp":"2022-01-01T00:00:05Z","managedFields":[{"apiVersion":"v1","fieldsType":"FieldsV1","fieldsV1":{"f:count":{},"f:lastTimestamp":{},"f:message":{}},"operation":"Apply"}],"name":"simple1.174ef00ef0ccddb2","namespace":"ns1","resourceVersion":"20","uid":"00000000-0000-0000-0000-000000000006"},"reason":"InternalError","reportingComponent":"","reportingInstance":"","source":{"component":"addon-controller"},"type":"Warning"}
+
+---
+
+GET http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+GET http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/apis/addons.example.org/v1alpha1/namespaces/ns1/simpletests/simple1?fieldValidation=Warn
+Accept: application/json, */*
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1"}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 773
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","metadata":{"annotations":{"applyset.kubernetes.io/additional-namespaces":"","applyset.kubernetes.io/contains-group-resources":"ConfigMap,Deployment.apps","applyset.kubernetes.io/tooling":"operator/"},"creationTimestamp":"2022-01-01T00:00:01Z","labels":{"applyset.kubernetes.io/id":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1"},"name":"simple1","namespace":"ns1","resourceVersion":"21","uid":"00000000-0000-0000-0000-000000000002"},"spec":{"channel":"stable"},"status":{"conditions":[{"lastTransitionTime":"2022-01-01T00:00:00Z","message":"apps/v1, Kind=Deployment/ns1/mydeployment:Replicas: 0/3","reason":"ManifestsNotReady","status":"False","type":"Ready"}],"healthy":false,"phase":"Applying"}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+PATCH http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment?fieldManager=kdp-test&force=true
+Accept: application/json
+Content-Type: application/apply-patch+yaml
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}]},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+PATCH http://kube-apiserver/api/v1/namespaces/ns1/events/simple1.174ef00ef0ccddb2
+Accept: application/json, */*
+Content-Type: application/strategic-merge-patch+json
+
+{"count":3,"lastTimestamp":"2023-03-23T03:54:19Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for Deployment.apps: ControllerRESTMaper does not support RESTMappings operation"}
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 957
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","count":3,"eventTime":null,"firstTimestamp":"2023-03-23T03:54:18Z","involvedObject":{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","name":"simple1","namespace":"ns1","resourceVersion":"15","uid":"00000000-0000-0000-0000-000000000002"},"kind":"Event","lastTimestamp":"2023-03-23T03:54:19Z","message":"internal error: error applying manifest: error deleting objects: cannot get restmapping for Deployment.apps: ControllerRESTMaper does not support RESTMappings operation","metadata":{"creationTimestamp":"2022-01-01T00:00:05Z","managedFields":[{"apiVersion":"v1","fieldsType":"FieldsV1","fieldsV1":{"f:count":{},"f:lastTimestamp":{},"f:message":{}},"operation":"Apply"}],"name":"simple1.174ef00ef0ccddb2","namespace":"ns1","resourceVersion":"22","uid":"00000000-0000-0000-0000-000000000006"},"reason":"InternalError","reportingComponent":"","reportingInstance":"","source":{"component":"addon-controller"},"type":"Warning"}
+
+---
+
+GET http://kube-apiserver/api/v1/namespaces/ns1/configmaps/foo
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 583
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","data":{"k1":"v1"},"kind":"ConfigMap","metadata":{"creationTimestamp":"2022-01-01T00:00:02Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest","l1":"v1"},"name":"foo","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"4","uid":"00000000-0000-0000-0000-000000000003"}}
+
+---
+
+GET http://kube-apiserver/apis/apps/v1/namespaces/ns1/deployments/mydeployment
+Accept: application/json
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 757
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"creationTimestamp":"2022-01-01T00:00:03Z","labels":{"addons.example.org/simpletest":"simple1","applyset.kubernetes.io/part-of":"applyset-xbxAWnAItX3p1Gxrs86F-ZQAGwGoys9xxQGK3IED7bY-v1","example-app":"simpletest"},"name":"mydeployment","namespace":"ns1","ownerReferences":[{"apiVersion":"addons.example.org/v1alpha1","blockOwnerDeletion":true,"controller":true,"kind":"SimpleTest","name":"simple1","uid":"00000000-0000-0000-0000-000000000002"}],"resourceVersion":"5","uid":"00000000-0000-0000-0000-000000000004"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"bar"}},"template":{"metadata":{"labels":{"app":"bar"}},"spec":{"containers":[{"image":"registry.k8s.io/pause:3.9","name":"main"}]}}}}
+
+---
+
+POST http://kube-apiserver/api/v1/namespaces/ns1/events
+Accept: application/json, */*
+Content-Type: application/json
+
+{"kind":"Event","apiVersion":"v1","metadata":{"name":"simple1.174ef00f5004efda","namespace":"ns1","creationTimestamp":null},"involvedObject":{"kind":"SimpleTest","namespace":"ns1","name":"simple1","uid":"00000000-0000-0000-0000-000000000002","apiVersion":"addons.example.org/v1alpha1","resourceVersion":"21"},"reason":"InternalError","message":"internal error: error applying manifest: error updating parent before apply: failed to update ApplySet: client rate limiter Wait returned an error: context canceled","source":{"component":"addon-controller"},"firstTimestamp":"2023-03-23T03:54:19Z","lastTimestamp":"2023-03-23T03:54:19Z","count":1,"type":"Warning","eventTime":null,"reportingComponent":"","reportingInstance":""}
+
+
+200 OK
+Cache-Control: no-cache, private
+Content-Length: 809
+Content-Type: application/json
+Date: (removed)
+
+{"apiVersion":"v1","count":1,"eventTime":null,"firstTimestamp":"2023-03-23T03:54:19Z","involvedObject":{"apiVersion":"addons.example.org/v1alpha1","kind":"SimpleTest","name":"simple1","namespace":"ns1","resourceVersion":"21","uid":"00000000-0000-0000-0000-000000000002"},"kind":"Event","lastTimestamp":"2023-03-23T03:54:19Z","message":"internal error: error applying manifest: error updating parent before apply: failed to update ApplySet: client rate limiter Wait returned an error: context canceled","metadata":{"creationTimestamp":"2022-01-01T00:00:06Z","name":"simple1.174ef00f5004efda","namespace":"ns1","resourceVersion":"23","uid":"00000000-0000-0000-0000-000000000007"},"reason":"InternalError","reportingComponent":"","reportingInstance":"","source":{"component":"addon-controller"},"type":"Warning"}

@@ -155,7 +155,7 @@ func (a *ApplySet) ApplyOnce(ctx context.Context) (*ApplyResults, error) {
 		}
 
 		tracker.lastApplied = lastApplied
-		results.applySuccess(gvk, nn)
+		results.afterApplySuccess(gvk, nn, lastApplied)
 		tracker.isHealthy = isHealthy(lastApplied)
 		results.reportHealth(gvk, nn, tracker.isHealthy)
 	}

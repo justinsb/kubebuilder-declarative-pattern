@@ -21,8 +21,7 @@ import (
 )
 
 func TestApplySetApplier(t *testing.T) {
-	patchOptions := metav1.PatchOptions{FieldManager: "kdp-test"}
-	applier := NewApplySetApplier(patchOptions)
+	applier := NewApplySetApplier(metav1.PatchOptions{FieldManager: "kdp-test"})
 	runApplierGoldenTests(t, "testdata/applylib", false, applier)
 }
 

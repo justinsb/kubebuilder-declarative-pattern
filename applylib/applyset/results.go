@@ -17,18 +17,26 @@ limitations under the License.
 package applyset
 
 import (
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
 )
 
 // ApplyResults contains the results of an Apply operation.
 type ApplyResults struct {
-	total             int
-	applySuccessCount int
-	applyFailCount    int
-	healthyCount      int
-	unhealthyCount    int
+	total          int
+	successObjects []objectInfo
+	applyFailCount int
+	healthyCount   int
+	unhealthyCount int
+}
+
+type objectInfo struct {
+	id  types.NamespacedName
+	gvk schema.GroupVersionKind
+	uid types.UID
 }
 
 // AllApplied is true if the desired state has been successfully applied for all objects.
@@ -37,6 +45,15 @@ func (r *ApplyResults) AllApplied() bool {
 	r.checkInvariants()
 
 	return r.applyFailCount == 0
+}
+
+// AppliedUIDs is the set of all applied object UIDs
+func (r *ApplyResults) AppliedUIDs() sets.Set[types.UID] {
+	out := sets.New[types.UID]()
+	for _, obj := range r.successObjects {
+		out.Insert(obj.uid)
+	}
+	return out
 }
 
 // AllHealthy is true if all the objects have been applied and have converged to a "ready" state.
@@ -49,7 +66,8 @@ func (r *ApplyResults) AllHealthy() bool {
 
 // checkInvariants is an internal function that warns if the object doesn't match the expected invariants.
 func (r *ApplyResults) checkInvariants() {
-	if r.total != (r.applySuccessCount + r.applyFailCount) {
+	applySuccessCount := len(r.successObjects)
+	if r.total != (applySuccessCount + r.applyFailCount) {
 		klog.Warningf("consistency error (apply counts): %#v", r)
 	} else if r.total != (r.healthyCount + r.unhealthyCount) {
 		// This "invariant" only holds when all objects could be applied
@@ -63,9 +81,13 @@ func (r *ApplyResults) applyError(gvk schema.GroupVersionKind, nn types.Namespac
 	klog.Warningf("error from apply on %s %s: %v", gvk, nn, err)
 }
 
-// applySuccess records that an object was applied and this succeeded.
-func (r *ApplyResults) applySuccess(gvk schema.GroupVersionKind, nn types.NamespacedName) {
-	r.applySuccessCount++
+// afterApplySuccess records that an object was applied and this succeeded.
+func (r *ApplyResults) afterApplySuccess(gvk schema.GroupVersionKind, nn types.NamespacedName, u *unstructured.Unstructured) {
+	r.successObjects = append(r.successObjects, objectInfo{
+		gvk: gvk,
+		id:  nn,
+		uid: u.GetUID(),
+	})
 }
 
 // reportHealth records the health of an object.

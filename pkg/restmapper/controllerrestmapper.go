@@ -35,22 +35,22 @@ var _ meta.RESTMapper = &ControllerRESTMapper{}
 
 // KindFor takes a partial resource and returns the single match.  Returns an error if there are multiple matches
 func (m *ControllerRESTMapper) KindFor(resource schema.GroupVersionResource) (schema.GroupVersionKind, error) {
-	return schema.GroupVersionKind{}, fmt.Errorf("ControllerRESTMaper does not support KindFor operation")
+	return schema.GroupVersionKind{}, fmt.Errorf("ControllerRESTMapper does not support KindFor operation")
 }
 
 // KindsFor takes a partial resource and returns the list of potential kinds in priority order
 func (m *ControllerRESTMapper) KindsFor(resource schema.GroupVersionResource) ([]schema.GroupVersionKind, error) {
-	return nil, fmt.Errorf("ControllerRESTMaper does not support KindsFor operation")
+	return nil, fmt.Errorf("ControllerRESTMapper does not support KindsFor operation")
 }
 
 // ResourceFor takes a partial resource and returns the single match.  Returns an error if there are multiple matches
 func (m *ControllerRESTMapper) ResourceFor(input schema.GroupVersionResource) (schema.GroupVersionResource, error) {
-	return schema.GroupVersionResource{}, fmt.Errorf("ControllerRESTMaper does not support ResourceFor operation")
+	return schema.GroupVersionResource{}, fmt.Errorf("ControllerRESTMapper does not support ResourceFor operation")
 }
 
 // ResourcesFor takes a partial resource and returns the list of potential resource in priority order
 func (m *ControllerRESTMapper) ResourcesFor(input schema.GroupVersionResource) ([]schema.GroupVersionResource, error) {
-	return nil, fmt.Errorf("ControllerRESTMaper does not support ResourcesFor operation")
+	return nil, fmt.Errorf("ControllerRESTMapper does not support ResourcesFor operation")
 }
 
 // RESTMapping identifies a preferred resource mapping for the provided group kind.
@@ -75,9 +75,9 @@ func (m *ControllerRESTMapper) RESTMapping(gk schema.GroupKind, versions ...stri
 // version search is provided. Otherwise identifies a preferred resource mapping for
 // the provided version(s).
 func (m *ControllerRESTMapper) RESTMappings(gk schema.GroupKind, versions ...string) ([]*meta.RESTMapping, error) {
-	return nil, fmt.Errorf("ControllerRESTMaper does not support RESTMappings operation")
+	return nil, fmt.Errorf("ControllerRESTMapper does not support RESTMappings operation")
 }
 
 func (m *ControllerRESTMapper) ResourceSingularizer(resource string) (singular string, err error) {
-	return "", fmt.Errorf("ControllerRESTMaper does not support ResourceSingularizer operation")
+	return "", fmt.Errorf("ControllerRESTMapper does not support ResourceSingularizer operation")
 }

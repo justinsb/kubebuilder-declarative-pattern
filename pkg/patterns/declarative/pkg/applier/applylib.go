@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/dynamic"
 
 	"sigs.k8s.io/kubebuilder-declarative-pattern/applylib/applyset"
+	"sigs.k8s.io/kubebuilder-declarative-pattern/applylib/applyset/prune"
 )
 
 type ApplySetApplier struct {
@@ -22,6 +23,8 @@ func NewApplySetApplier(patchOptions metav1.PatchOptions) *ApplySetApplier {
 }
 
 func (a *ApplySetApplier) Apply(ctx context.Context, opt ApplierOptions) error {
+	dryRun := false
+	validationDirective := metav1.FieldValidationWarn
 
 	patchOptions := a.patchOptions
 
@@ -75,11 +78,61 @@ func (a *ApplySetApplier) Apply(ctx context.Context, opt ApplierOptions) error {
 		}
 	}
 
-	var applyableObjects []applyset.ApplyableObject
-	for _, obj := range opt.Objects {
-		applyableObject := obj.UnstructuredObject()
-		applyableObjects = append(applyableObjects, applyableObject)
+	var pruner *prune.ApplySet
+
+	if opt.ApplysetParent != nil {
+		parentGVK := opt.ApplysetParent.GroupVersionKind()
+		parentRESTMapping, err := restMapper.RESTMapping(parentGVK.GroupKind(), parentGVK.Version)
+		if err != nil {
+			return fmt.Errorf("error getting parent rest mapping for %v: %w", parentRESTMapping, err)
+		}
+
+		// parent := &prune.ApplySetParentRef{
+		// 	Name:        opt.ApplysetParent.GetName(),
+		// 	Namespace:   opt.ApplysetParent.GetNamespace(),
+		// 	RESTMapping: parentRESTMapping,
+		// }
+
+		tooling := opt.ApplysetTooling
+
+		pruner = prune.NewApplySet(opt.ApplysetParent, tooling, restMapper, dynamicClient)
 	}
+
+	var applyableObjects []applyset.ApplyableObject
+	if pruner != nil {
+		addLabels := pruner.LabelsForMember()
+
+		var info []prune.ObjectInfo
+
+		for _, obj := range opt.Objects {
+			u := obj.UnstructuredObject()
+			gvk := obj.GroupVersionKind()
+			labels := u.GetLabels()
+			if labels == nil {
+				labels = make(map[string]string)
+			}
+			for k, v := range addLabels {
+				labels[k] = v
+			}
+			u.SetLabels(labels)
+			applyableObjects = append(applyableObjects, u)
+			info = append(info, prune.ObjectInfo{
+				Namespace: u.GetNamespace(),
+				Name:      u.GetName(),
+				GVK:       gvk,
+			})
+		}
+
+		if err := pruner.BeforeApply(ctx, opt.ApplysetParent, info, dryRun, validationDirective); err != nil {
+			return fmt.Errorf("error updating parent before apply: %w", err)
+		}
+	} else {
+		for _, obj := range opt.Objects {
+			applyableObject := obj.UnstructuredObject()
+			applyableObjects = append(applyableObjects, applyableObject)
+		}
+	}
+
 	if err := s.SetDesiredObjects(applyableObjects); err != nil {
 		return fmt.Errorf("error setting desired objects for apply: %w", err)
 	}
@@ -94,6 +147,22 @@ func (a *ApplySetApplier) Apply(ctx context.Context, opt ApplierOptions) error {
 	}
 
 	// TODO: Check healthy
+
+	if pruner != nil && results.AllApplied() && results.AllHealthy() {
+		for uid := range results.AppliedUIDs() {
+			pruner.MarkObjectVisited(uid)
+		}
+
+		deleteOptions := &prune.ApplySetDeleteOptions{
+			// CascadingStrategy: ,
+			// DryRunStrategy    cmdutil.DryRunStrategy
+			// GracePeriod       int
+		}
+
+		if err := pruner.Prune(ctx, opt.ApplysetParent, validationDirective, deleteOptions); err != nil {
+			return fmt.Errorf("error deleting objects: %w", err)
+		}
+	}
 
 	return nil
 }

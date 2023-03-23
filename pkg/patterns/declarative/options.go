@@ -53,6 +53,7 @@ type reconcilerParams struct {
 	cascadingStrategy metav1.DeletionPropagation
 	prune             bool
 	preserveNamespace bool
+	applysetPrune bool
 	kustomize         bool
 	validate          bool
 	metrics           bool
@@ -120,6 +121,14 @@ func WithManifestController(mc ManifestController) ReconcilerOption {
 func WithApplyPrune() ReconcilerOption {
 	return func(p reconcilerParams) reconcilerParams {
 		p.prune = true
+		return p
+	}
+}
+
+// TODO
+func WithApplysetPrune() ReconcilerOption {
+	return func(p reconcilerParams) reconcilerParams {
+		p.applysetPrune = true
 		return p
 	}
 }

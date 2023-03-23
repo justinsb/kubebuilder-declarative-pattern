@@ -41,6 +41,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/kustomize/kyaml/filesys"
 
+	"sigs.k8s.io/kubebuilder-declarative-pattern/applylib/applyset/prune"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon/pkg/utils"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative/kustomize"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative/pkg/applier"
@@ -338,6 +339,11 @@ func (r *Reconciler) reconcileExists(ctx context.Context, name types.NamespacedN
 		ExtraArgs:         extraArgs,
 		Force:             true,
 		CascadingStrategy: r.options.cascadingStrategy,
+	}
+
+	if r.options.applysetPrune {
+		applierOpt.ApplysetParent = &parentObject{subject: instance, client: r.client}
+		applierOpt.ApplysetTooling = prune.ApplySetTooling{Name: "operator", Version: ""}
 	}
 
 	applyOperation := &ApplyOperation{
@@ -771,4 +777,33 @@ func GetObjectFromCluster(obj *manifest.Object, r *Reconciler) (*unstructured.Un
 		return nil, fmt.Errorf("unable to get object: %w", err)
 	}
 	return unstruct, nil
+}
+
+type parentObject struct {
+	subject DeclarativeObject
+	client  client.Client
+}
+
+func (o *parentObject) GetName() string {
+	return o.subject.GetName()
+}
+
+func (o *parentObject) GetNamespace() string {
+	return o.subject.GetNamespace()
+}
+
+func (o *parentObject) GetAnnotations() map[string]string {
+	return o.subject.GetAnnotations()
+}
+
+func (o *parentObject) GetLabels() map[string]string {
+	return o.subject.GetLabels()
+}
+
+func (o *parentObject) GroupVersionKind() schema.GroupVersionKind {
+	return o.subject.GetObjectKind().GroupVersionKind()
+}
+
+func (o *parentObject) Patch(ctx context.Context, patchType types.PatchType, patch []byte, options metav1.PatchOptions) error {
+	return o.client.Patch(ctx, o.subject, client.RawPatch(patchType, patch), &client.PatchOptions{Raw: &options})
 }
