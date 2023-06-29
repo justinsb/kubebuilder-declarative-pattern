@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
@@ -31,11 +32,13 @@ import (
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
+	"sigs.k8s.io/kubebuilder-declarative-pattern/applylib/watchset"
+	"sigs.k8s.io/kubebuilder-declarative-pattern/commonclient"
 	addonsv1alpha1 "sigs.k8s.io/kubebuilder-declarative-pattern/composite/api/v1alpha1"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/composite/pkg/engines/manifestengine"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/declarative"
@@ -47,9 +50,11 @@ var _ reconcile.Reconciler = &instanceReconciler{}
 
 // instanceReconciler reconciles a CompositeDefinition object
 type instanceReconciler struct {
-	client        client.Client
-	restMapper    meta.RESTMapper
-	config        *rest.Config
+	client     client.Client
+	restMapper meta.RESTMapper
+	config     *rest.Config
+	scheme     *runtime.Scheme
+
 	dynamicClient dynamic.Interface
 
 	subject *addonsv1alpha1.CompositeDefinition
@@ -57,6 +62,8 @@ type instanceReconciler struct {
 	fileName   string
 	engine     string
 	definition string
+
+	watchsetManager *watchset.ControllerManager
 }
 
 func (r *instanceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
@@ -67,20 +74,38 @@ func (r *instanceReconciler) Reconcile(ctx context.Context, req reconcile.Reques
 	subject.SetAPIVersion(r.subject.Spec.ReconcilerFor.APIVersion)
 	subject.SetKind(r.subject.Spec.ReconcilerFor.Kind)
 
+	gvk, err := apiutil.GVKForObject(subject, r.scheme)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	restMapping, err := r.restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+	gvr := restMapping.Resource
+	watches := r.watchsetManager.ReconcileStart(ctx, id)
+
 	if err := r.client.Get(ctx, id, subject); err != nil {
 		if apierrors.IsNotFound(err) {
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
 	}
+	watches.DependencySet.WatchObject(gvr, id, subject.GetResourceVersion())
 
 	log.Info("reconcile request for object", "object", subject)
 
-	result, err := r.reconcileExists(ctx, id, subject)
+	result, err := r.reconcileExists(ctx, watches.DependencySet, id, subject)
 	if err != nil {
+		watches.ReconcileFailed()
 		return reconcile.Result{}, err
 	}
-	log.Info("result", "result", result)
+
+	watches.ReconcileSuccess()
+
+	// TODO: Why do we have to pass String() ?
+	log.Info("result", "result", result, "dependencies", watches.DependencySet.String())
 	return reconcile.Result{}, err
 }
 
@@ -112,13 +137,14 @@ func (r *instanceReconciler) BuildDeploymentObjects(ctx context.Context, name ty
 	return out, nil
 }
 
-func (r *instanceReconciler) reconcileExists(ctx context.Context, name types.NamespacedName, instance *unstructured.Unstructured) (*declarative.StatusInfo, error) {
+func (r *instanceReconciler) reconcileExists(ctx context.Context, dependencies *watchset.DependencySet, name types.NamespacedName, instance *unstructured.Unstructured) (*declarative.StatusInfo, error) {
 	log := log.FromContext(ctx)
 	log.WithValues("object", name.String()).Info("reconciling")
 
 	statusInfo := &declarative.StatusInfo{}
 	statusInfo.Subject = instance
 
+	dynamicClient := dependencies.TrackingDynamicClient(r.dynamicClient)
 	// var fs filesys.FileSystem
 	// if r.IsKustomizeOptionUsed() {
 	// 	fs = filesys.MakeFsInMemory()
@@ -181,7 +207,6 @@ func (r *instanceReconciler) reconcileExists(ctx context.Context, name types.Nam
 
 	var newItems []*manifest.Object
 	for _, obj := range objects.Items {
-
 		// unstruct, err := GetObjectFromCluster(obj, r)
 		// if err != nil && !apierrors.IsNotFound(errors.Unwrap(err)) {
 		// 	log.WithValues("name", obj.GetName()).Error(err, "Unable to get resource")
@@ -246,6 +271,7 @@ func (r *instanceReconciler) reconcileExists(ctx context.Context, name types.Nam
 		Namespace:         ns,
 		ParentRef:         parentRef,
 		Objects:           objects.GetItems(),
+		DynamicClient:     dynamicClient,
 		Validate:          false, //r.options.validate,
 		ExtraArgs:         extraArgs,
 		Force:             true,
@@ -255,6 +281,8 @@ func (r *instanceReconciler) reconcileExists(ctx context.Context, name types.Nam
 
 	// TODO: Don't prune until objects are healthy
 	applierOpt.Prune = true
+
+	applierOpt.ApplyCallbacks = append(applierOpt.ApplyCallbacks, &dependencyApplyCallback{dependencies})
 
 	// applyOperation := &declarative.ApplyOperation{
 	// 	Subject:        instance,
@@ -304,7 +332,6 @@ func (r *instanceReconciler) reconcileExists(ctx context.Context, name types.Nam
 			return nil, fmt.Errorf("error getting object: %w", err)
 		}
 		return u, nil
-
 	}
 
 	// if r.options.sink != nil {
@@ -326,13 +353,25 @@ func (r *instanceReconciler) reconcileExists(ctx context.Context, name types.Nam
 	return statusInfo, nil
 }
 
+type dependencyApplyCallback struct {
+	dependencies *watchset.DependencySet
+}
+
+func (c *dependencyApplyCallback) AfterApply(gvk schema.GroupVersionKind, id types.NamespacedName, err error, result client.Object) {
+	// if err == nil {
+	// 	rv := result.GetResourceVersion()
+	// 	c.dependencies.WatchObject(gvk, id, rv)
+	// }
+}
+
 // SetupWithManager sets up the controller with the Manager.
-func (r *instanceReconciler) start(mgr ctrl.Manager) error {
+func (r *instanceReconciler) start(mgr ctrl.Manager, watchsets *watchset.Manager) error {
 	// addon.Init()
 
 	r.client = mgr.GetClient()
 	r.restMapper = mgr.GetRESTMapper()
 	r.config = mgr.GetConfig()
+	r.scheme = mgr.GetScheme()
 
 	d, err := dynamic.NewForConfig(r.config)
 	if err != nil {
@@ -367,12 +406,18 @@ func (r *instanceReconciler) start(mgr ctrl.Manager) error {
 		return err
 	}
 
+	watchsetManager, err := watchsets.NewControllerManager(c)
+	if err != nil {
+		return err
+	}
+	r.watchsetManager = watchsetManager
+
 	actsOn := &unstructured.Unstructured{}
 	actsOn.SetAPIVersion(r.subject.Spec.ReconcilerFor.APIVersion)
 	actsOn.SetKind(r.subject.Spec.ReconcilerFor.Kind)
 
 	// Watch for changes to CompositeDefinition
-	err = c.Watch(&source.Kind{Type: actsOn}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(commonclient.SourceKind(mgr.GetCache(), actsOn), &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}

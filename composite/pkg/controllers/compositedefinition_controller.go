@@ -25,7 +25,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
+	"sigs.k8s.io/kubebuilder-declarative-pattern/applylib/watchset"
+	"sigs.k8s.io/kubebuilder-declarative-pattern/commonclient"
 	"sigs.k8s.io/kubebuilder-declarative-pattern/pkg/patterns/addon"
 
 	addonsv1alpha1 "sigs.k8s.io/kubebuilder-declarative-pattern/composite/api/v1alpha1"
@@ -38,6 +39,8 @@ type CompositeDefinitionReconciler struct {
 	// client.Client
 	client client.Client
 	mgr    ctrl.Manager
+
+	watchsets *watchset.Manager
 	// Log    logr.Logger
 	// Scheme *runtime.Scheme
 }
@@ -67,7 +70,7 @@ func (r *CompositeDefinitionReconciler) reconcile(ctx context.Context, subject *
 	// log := klog.FromContext(ctx)
 
 	reconciler := &instanceReconciler{subject: subject}
-	if err := reconciler.start(r.mgr); err != nil {
+	if err := reconciler.start(r.mgr, r.watchsets); err != nil {
 		return err
 	}
 	// // Watch for changes to deployed objects
@@ -82,6 +85,13 @@ func (r *CompositeDefinitionReconciler) reconcile(ctx context.Context, subject *
 // SetupWithManager sets up the controller with the Manager.
 func (r *CompositeDefinitionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	addon.Init()
+
+	// TODO: Share watchset manager across controllers
+	watchsets, err := watchset.NewManager(mgr)
+	if err != nil {
+		return err
+	}
+	r.watchsets = watchsets
 
 	r.client = mgr.GetClient()
 	r.mgr = mgr
@@ -110,7 +120,7 @@ func (r *CompositeDefinitionReconciler) SetupWithManager(mgr ctrl.Manager) error
 	}
 
 	// Watch for changes to CompositeDefinition
-	err = c.Watch(&source.Kind{Type: &addonsv1alpha1.CompositeDefinition{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(commonclient.SourceKind(mgr.GetCache(), &addonsv1alpha1.CompositeDefinition{}), &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}

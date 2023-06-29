@@ -72,6 +72,8 @@ type ApplySet struct {
 	parent Parent
 	// If not given, the tooling value will be the `Parent` Kind.
 	tooling kubectlapply.ApplySetTooling
+
+	applyCallbacks []AfterApplyCallback
 }
 
 // Options holds the parameters for building an ApplySet.
@@ -83,11 +85,16 @@ type Options struct {
 	// RESTMapper is used to map object kind to resources, and to know if objects are cluster-scoped.
 	RESTMapper meta.RESTMapper
 	// PatchOptions holds the options used when applying, in particular the fieldManager
-	PatchOptions  metav1.PatchOptions
-	DeleteOptions metav1.DeleteOptions
-	Prune         bool
-	Parent        Parent
-	Tooling       string
+	PatchOptions   metav1.PatchOptions
+	DeleteOptions  metav1.DeleteOptions
+	Prune          bool
+	Parent         Parent
+	Tooling        string
+	ApplyCallbacks []AfterApplyCallback
+}
+
+type AfterApplyCallback interface {
+	AfterApply(gvk schema.GroupVersionKind, id types.NamespacedName, err error, updated client.Object)
 }
 
 // New constructs a new ApplySet
@@ -108,14 +115,15 @@ func New(options Options) (*ApplySet, error) {
 		options.PatchOptions.FieldManager = kapplyset.FieldManager()
 	}
 	a := &ApplySet{
-		parentClient:  options.ParentClient,
-		client:        options.Client,
-		restMapper:    options.RESTMapper,
-		patchOptions:  options.PatchOptions,
-		deleteOptions: options.DeleteOptions,
-		prune:         options.Prune,
-		parent:        parent,
-		tooling:       tooling,
+		parentClient:   options.ParentClient,
+		client:         options.Client,
+		restMapper:     options.RESTMapper,
+		patchOptions:   options.PatchOptions,
+		deleteOptions:  options.DeleteOptions,
+		prune:          options.Prune,
+		parent:         parent,
+		tooling:        tooling,
+		applyCallbacks: options.ApplyCallbacks,
 	}
 	a.trackers = &objectTrackerList{}
 	return a, nil
@@ -250,6 +258,9 @@ func (a *ApplySet) ApplyOnce(ctx context.Context) (*ApplyResults, error) {
 		}
 
 		lastApplied, err := dynamicResource.Patch(ctx, name, types.ApplyPatchType, j, a.patchOptions)
+		for _, applyCallback := range a.applyCallbacks {
+			applyCallback.AfterApply(gvk, nn, err, lastApplied)
+		}
 		if err != nil {
 			results.applyError(gvk, nn, fmt.Errorf("error from apply: %w", err))
 			continue
